@@ -16,10 +16,10 @@ addpath(fullfile(fileparts(mfilename('fullpath')),'/config/place_avoidance'));
 
 global g_config;
 %% Change for desired configuration
-% g_config = config_place_avoidance(config_place_avoidance.DATA_SET_LARGE); 
+g_config = config_place_avoidance_silver; 
 % g_config = config_place_avoidance_mem; 
 % g_config = config_place_avoidance_darkness1; 
-g_config = config_mwm; 
+% g_config = config_mwm; 
 % g_config = config_mwm_nencki;
 % g_config = config_mwm_nencki_short;
 

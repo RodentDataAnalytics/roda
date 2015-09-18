@@ -27,6 +27,7 @@ classdef classification_results < handle
         full_trajectories = [];
         correlations = [];
         classes = [];
+        prototypes = [];
         % common controls
         group_checkboxes = [];
         trial_type_combo = [];
@@ -59,7 +60,8 @@ classdef classification_results < handle
             % inst.full_trajectories = results_full_trajectories(inst, inst.tab_panel);
             inst.correlations = results_correlation(inst, inst.tab_panel);
             inst.classes = results_classes_evolution(inst, inst.tab_panel);
-            inst.tab_panel.TabNames = {'Segment features', 'Features clusters', 'Features evolution', 'Correlations', 'Classes'};
+            inst.prototypes = results_prototypes(inst, inst.tab_panel); 
+            inst.tab_panel.TabNames = {'Segment features', 'Features clusters', 'Features evolution', 'Correlations', 'Classes', 'Prototypes'};
             inst.tab_panel.SelectedChild = 1;       
             
             %%
@@ -181,6 +183,8 @@ classdef classification_results < handle
                         inst.correlations.update;                        
                     case 5
                         inst.classes.update;
+                    case 6
+                        inst.prototypes.update;
                     otherwise
                         error('Ehm, seriously?');
                 end

@@ -1,13 +1,6 @@
 classdef config_place_avoidance_mem < config_place_avoidance
     % config_mwm Global constants
-    properties(Constant)                                        	                                                                                                                                           
-        % centre point of arena in cm        
-        CENTRE_X = 127.5;
-        CENTRE_Y = 127.5;
-        % radius of the arena
-        ARENA_R = 127.5;
-        ROTATION_FREQUENCY = 1;
-        
+    properties(Constant)                                        	                                                                                                                                                   
         % groups for the large group
         GROUP_CONTROL = 1;
         GROUP_MK_HIGH = 2;
