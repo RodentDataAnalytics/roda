@@ -22,5 +22,8 @@ function browse_set(set_num, set_comp, varargin)
         ref_res = classif.cluster(param_comp{2}, 0);            
     end
     
-    browse_trajectories(param{1}, segments, 'ReferenceClassification', ref_res, 'Name', g_config.DESCRIPTION, varargin{:});    
+   % browse_trajectories(param{1}, segments, 'ReferenceClassification', ref_res, 'Name', g_config.DESCRIPTION, varargin{:});
+   
+   wnd = main_window(param{1}, segments, 'ReferenceClassification', ref_res, 'Name', g_config.DESCRIPTION, varargin{:});
+   wnd.show;
 end    

@@ -1,26 +1,33 @@
-classdef results_prototypes < handle
-    %RESULTS_SINGLE_FEATURES Summary of this class goes here
-    %   Detailed explanation goes here
-    
+classdef cluster_prototypes_view < handle
     properties(GetAccess = 'protected', SetAccess = 'protected')
         window = [];    
         parent = [];
         grid = [];
+        grid_box = [];
         panels = [];
         axis = [];
         controls_box = [];                          
+        prev_n = 0;        
     end
     
     methods
-        function inst = results_prototypes(par, par_wnd)
+        function inst = cluster_prototypes_view(par, par_wnd)
             inst.window = uiextras.VBox('Parent', par_wnd);
             inst.parent = par;
         end
-               
-        function update(inst)
-            global g_config;            
-            if isempty(inst.grid) && ~isempty(inst.parent.results)
-                n = inst.parent.results.nclusters;
+                       
+        function update(inst)     
+            if isempty(inst.grid_box)
+                inst.grid_box = uiextras.VBox('Parent', inst.window);
+                inst.controls_box = uiextras.HBox('Parent', inst.window);
+                set(inst.window, 'Sizes', [-1, 40]);       
+            end
+            
+            if ~isempty(inst.parent.clustering_results) && inst.prev_n ~= inst.parent.clustering_results.nclusters
+                if ~isempty(inst.grid)
+                    delete(inst.grid);
+                end
+                n = inst.parent.clustering_results.nclusters;                
                 if n == 1
                     nr = 1;
                     nc = 1;
@@ -52,9 +59,7 @@ classdef results_prototypes < handle
                     error('need to update the list above');
                 end 
                         
-                inst.grid = uiextras.Grid('Parent', inst.window);
-                inst.controls_box = uiextras.HBox('Parent', inst.window);
-                set(inst.window, 'Sizes', [-1, 40]);                
+                inst.grid = uiextras.Grid('Parent', inst.grid_box);               
                 inst.axis = [];
                                 
                 for i = 1:n
@@ -64,24 +69,23 @@ classdef results_prototypes < handle
                 
                 set(inst.grid, 'RowSizes', -1*ones(1, nr), 'ColumnSizes', -1*ones(1, nc));                                                                
             end                                    
-            if ~isempty(inst.parent.results)
+            if ~isempty(inst.parent.clustering_results)
                 inst.update_plots;
             end
         end       
         
         function update_plots(inst, source, event_data) 
-            global g_config;
-            feat_val = inst.parent.traj.compute_features(g_config.CLUSTERING_FEATURE_SET);           
+            feat_val = inst.parent.traj.compute_features(inst.parent.features_cluster);           
             
             for idx = 1:length(inst.axis)                                                                
                 set(inst.parent.window, 'currentaxes', inst.axis(idx));                
                 hold off;                
                 
                 % get the sample closest to the centre of the cluster                                
-                sel = find(inst.parent.results.cluster_index == idx);                  
+                sel = find(inst.parent.clustering_results.cluster_index == idx);                  
                 feat_norm = max(feat_val(sel, :)) - min(feat_val(sel, :));
             
-                dist = sum(((feat_val(sel, :) - repmat(inst.parent.results.centroids(:, idx)', length(sel), 1)) ./ repmat(feat_norm, length(sel), 1)).^2, 2);
+                dist = sum(((feat_val(sel, :) - repmat(inst.parent.clustering_results.centroids(:, idx)', length(sel), 1)) ./ repmat(feat_norm, length(sel), 1)).^2, 2);
                 
                 [~, min_dist] = sort(dist);
                                 
