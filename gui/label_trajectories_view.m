@@ -469,7 +469,7 @@ classdef label_trajectories_view < handle
 
                     % update checkboxes
                     handles = inst.cb_handles(i, :);
-                    arrayfun(@(h,j) set(h, 'Value', inst.parent.traj_labels(traj_idx, j)), handles(1:(length(handles) - 1)), 1:(length(handles) - 1));  
+                    arrayfun(@(h,j) set(h, 'Value', inst.parent.traj_labels(traj_idx, j)), handles, 1:length(handles));  
 
                     for j = 1:(length(handles) - 1)
                         % by default no color
@@ -529,7 +529,7 @@ classdef label_trajectories_view < handle
                 end
             end
 
-            inst.parent.traj.save_tags(labels_fn, inst.parent.tags, inst.parent.traj_labels, []);
+            inst.parent.traj.save_tags(inst.parent.labels_filename, inst.parent.tags, inst.parent.traj_labels, []);
         end
 
         function update_status(inst)
@@ -608,7 +608,7 @@ classdef label_trajectories_view < handle
                 otherwise
                     % classes
                     if val <= inst.parent.clustering_results.nclasses + 8
-                        if inst.parent.clustering_results.classes(val - 8).abbreviation == inst.parent.config.UNDEFINED_TAG_ABBREVIATION                                    
+                        if strcmp(inst.parent.clustering_results.classes(val - 8).abbreviation, inst.parent.config.UNDEFINED_TAG_ABBREVIATION)
                             inst.filter = find(inst.parent.clustering_results.class_map == 0);
                         else
                             inst.filter = find(inst.parent.clustering_results.class_map == (val - 8));                                    

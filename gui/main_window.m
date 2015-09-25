@@ -15,20 +15,28 @@ classdef main_window < handle
         % sub-tabs
         labels_view = [];
         clustering_view = [];
+        results_view = [];
         % the trajectories
         traj = [];               
         % the trajectoriy labels
         tags = [];               
-        traj_labels = []
         % the current clustering results
-        clustering_results = [];
+        clustering_results = [];        
         reference_results = [];
-        results_difference = [];
+        results_difference = [];        
+        groups_colors = [];
+    end
+    
+    properties(GetAccess = 'public', SetAccess = 'public')
+        traj_labels = [];       
     end
     
     methods
         function inst = main_window(labels_fn, traj, varargin)
             global g_config;
+            %%% HACK OpenGL renderer has some problems -> use SW rendering instead
+            set(0, 'DefaultFigureRenderer', 'painters');
+            %
             inst.config = g_config;
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern'));    
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout'));
@@ -70,7 +78,11 @@ classdef main_window < handle
                 'Position', [200, 200, 1280, 800], 'Menubar', 'none', 'Toolbar', 'none', 'resize', 'on');
 
             % combine display + clustering features
-            inst.features = [inst.features_cluster, setdiff(inst.features_display, inst.features_cluster)];
+            if isscalar(inst.features_cluster)
+                inst.features = inst.features_display;
+            else
+                inst.features = [inst.features_cluster, setdiff(inst.features_display, inst.features_cluster)];
+            end
             inst.features_values = inst.traj.compute_features(inst.features);  
             
             % create the tabs
@@ -79,10 +91,12 @@ classdef main_window < handle
             
             inst.labels_view = label_trajectories_view(inst, inst.tab_panel);
             inst.clustering_view = clustering_view(inst, inst.tab_panel);
+            inst.results_view = classification_results_view(inst, inst.tab_panel);
             
-            inst.tab_panel.TabNames = {'Browse/label segments', 'Clustering'};
+            inst.tab_panel.TabNames = {'Browsing & labelling', 'Clustering', 'Results'};
             inst.tab_panel.SelectedChild = 1;                      
-            inst.update(1);           
+            inst.update(1);
+            inst.groups_colors = cmapping(inst.config.GROUPS + 1, jet);            
         end
         
         function show(inst)
@@ -90,11 +104,12 @@ classdef main_window < handle
         end
         
         function update_tab_callback(inst, source, eventdata)
+            inst.clear;
             inst.update(eventdata.SelectedChild);
         end
         
         function update_callback(inst, source, eventdata)
-            inst.update(inst.tab_panel.SelectedChild);
+            inst.update_child(inst.tab_panel.SelectedChild);
         end
         
         function update(inst, tabnr)
@@ -103,6 +118,8 @@ classdef main_window < handle
                     inst.labels_view.update;
                 case 2 
                     inst.clustering_view.update;
+                case 3
+                    inst.results_view.update;                
                 otherwise
                     error('Ehm, seriously?');
             end                        
@@ -126,8 +143,28 @@ classdef main_window < handle
                 inst.clustering_view.clustering_results_updated;
             end
             
+            if ismethod(inst.results_view, 'clustering_results_updated')
+                inst.results_view.clustering_results_updated;
+            end
+            
             inst.update(inst.tab_panel.SelectedChild);
         end        
+        
+        function clear(inst)
+            switch inst.tab_panel.SelectedChild
+                case 1 % show features
+                    if ismethod(inst.labels_view, 'clear')
+                        inst.labels_view.clear;
+                    end
+                case 2
+                    if ismethod(inst.clustering_view, 'clear')
+                        inst.clustering_view.clear;
+                    end
+                case 3
+                    if ismethod(inst.results_view, 'clear')
+                        inst.results_view.clear;
+                    end
+            end
+        end            
     end        
 end
-

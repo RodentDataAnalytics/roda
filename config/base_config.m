@@ -93,6 +93,7 @@ classdef base_config
         DATA_REPRESENTATION = [];
         FEATURES = [];  
         SEGMENTATIONS = [];
+        NUMBER_FEATURES_PCA = 0;                                  
     end
     
     methods

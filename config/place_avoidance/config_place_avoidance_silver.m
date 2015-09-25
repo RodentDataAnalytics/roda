@@ -26,9 +26,11 @@ classdef config_place_avoidance_silver < config_place_avoidance
         function inst = config_place_avoidance_silver()            
             inst@config_place_avoidance('Place avoidance task (silver)');                                   
         end
-               
+    end
+    
+    methods(Static)
         % Imports trajectories from Noldus data file's
-        function traj = load_data(inst)
+        function traj = load_data()
             addpath(fullfile(fileparts(mfilename('fullpath')),'../import/place_avoidance'));
 
             % "Silver" set

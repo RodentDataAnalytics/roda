@@ -814,5 +814,12 @@ classdef clustering_results < handle
             tpm = inst.transition_counts(varargin{:});
             tpm = tpm ./ repmat(sum(tpm, 2), 1, size(tpm, 1));
         end
+        
+        function sz = cluster_sizes(inst)
+            sz = zeros(1, inst.nclusters);
+            for i = 1:inst.nclusters
+                sz(i) = sum(inst.cluster_index == i);
+            end
+        end
     end    
 end

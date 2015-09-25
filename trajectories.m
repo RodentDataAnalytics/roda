@@ -198,6 +198,13 @@ classdef trajectories < handle
             obj.items = obj.items(g_outliers_cache(key));                                            
             out = g_outliers_cache(key);            
         end
+     
+        function featval = compute_features_pca(obj, feat, nfeat)
+            featval = obj.compute_features(feat);
+            coeff = pca(featval);
+                
+            featval = featval*coeff(:, 1:nfeat);                
+        end
         
         function featval = compute_features(obj, feat)
             %COMPUTE_FEATURES Computes feature values for each trajectory/segment. Returns a vector of
@@ -307,7 +314,7 @@ classdef trajectories < handle
                 end                
             end 
             
-            if nargin > 3
+            if nargin > 3 && ~isempty(sel_tags)
                 tag_map = zeros(1, length(tags));
                 % remap labels
                 new_map = zeros(length(map), length(sel_tags));                
@@ -328,7 +335,7 @@ classdef trajectories < handle
             end
         end                   
         
-        function res = classifier(inst, labels_fn, feat, tags_type, hyper_tags)
+        function res = classifier(inst, labels_fn, feat, tags_type, hyper_tags, npca_feat)
             global g_config;
             if exist(labels_fn, 'file')
                 if nargin > 3
@@ -398,9 +405,18 @@ classdef trajectories < handle
                     end
                 end
             end
-                                    
-            res = semisupervised_clustering(inst, [extra_feat; inst.compute_features(feat)], [extra_lbl, labels], tags, length(extra_lbl));            
+                
+            feat_val = [extra_feat; inst.compute_features(feat)];
+            
+            if npca_feat > 0
+                % use PCA to reduce features;
+                coeff = pca(feat_val);                
+                feat_val = feat_val*coeff(:, 1:npca_feat);                          
+            end    
+            
+            res = semisupervised_clustering(inst, feat_val, [extra_lbl, labels], tags, length(extra_lbl));            
         end   
+                
         
         function [mapping] = match_segments(inst, other_seg, varargin)
             addpath(fullfile(fileparts(mfilename('fullpath')), '/extern'));

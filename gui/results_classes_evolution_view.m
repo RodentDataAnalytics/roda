@@ -1,10 +1,11 @@
-classdef results_classes_evolution < handle
+classdef results_classes_evolution_view < handle
     %RESULTS_SINGLE_FEATURES Summary of this class goes here
     %   Detailed explanation goes here
     
     properties(GetAccess = 'protected', SetAccess = 'protected')
         window = [];        
-        parent = [];                
+        parent = [];        
+        main_window = [];
         axis = [];       
         panels = [];
         grid_panel = [];
@@ -20,18 +21,18 @@ classdef results_classes_evolution < handle
     end
     
     methods
-        function inst = results_classes_evolution(par, par_wnd)                        
+        function inst = results_classes_evolution_view(par, par_wnd)                        
             inst.window = uiextras.VBox('Parent', par_wnd);
             inst.parent = par;            
+            inst.main_window = inst.parent.parent;
             
-            inst.all_groups = arrayfun( @(t) t.group, inst.parent.traj.parent.items);       
-            inst.all_trials = arrayfun( @(t) t.trial, inst.parent.traj.parent.items);                   
-            inst.all_groups = inst.all_groups(inst.parent.traj.segmented_index);
-            inst.all_trials = inst.all_trials(inst.parent.traj.segmented_index);
+            inst.all_groups = arrayfun( @(t) t.group, inst.main_window.traj.parent.items);       
+            inst.all_trials = arrayfun( @(t) t.trial, inst.main_window.traj.parent.items);                   
+            inst.all_groups = inst.all_groups(inst.main_window.traj.segmented_index);
+            inst.all_trials = inst.all_trials(inst.main_window.traj.segmented_index);
         end
         
         function update(inst)    
-            global g_config;
             naxis = 1;
             if ishandle(inst.plot_combo)
                 val = get(inst.plot_combo, 'value');
@@ -94,8 +95,8 @@ classdef results_classes_evolution < handle
                 % create other controls            
                 uicontrol('Parent', inst.controls_box, 'Style', 'text', 'String', 'Class:');                            
                 classes = {'None'};
-                if ~isempty(inst.parent.results)
-                    classes = arrayfun( @(idx) inst.parent.results.classes(idx).description, 1:inst.parent.results.nclasses, 'UniformOutput', 0);
+                if ~isempty(inst.main_window.clustering_results)
+                    classes = arrayfun( @(idx) inst.main_window.clustering_results.classes(idx).description, 1:inst.main_window.clustering_results.nclasses, 'UniformOutput', 0);
                 end
                 inst.class_combo = uicontrol('Parent', inst.controls_box, 'Style', 'popupmenu', 'String', classes, 'Callback', @inst.update_plots);               
                 uicontrol('Parent', inst.controls_box, 'Style', 'text', 'String', 'Plot:');            
@@ -103,15 +104,15 @@ classdef results_classes_evolution < handle
                 set(inst.controls_box, 'Sizes', [100, 200, 100, 200]);                                
             end
 
-            if isempty(inst.class_map) && ~isempty(inst.parent.results) && (inst.results_hash ~= inst.parent.results.hash_value)
-                tmp = inst.parent.results.mapping_ordered;
-                inst.class_map = zeros(size(tmp, 1), inst.parent.results.nclasses);
-                for i = 1:inst.parent.results.nclasses                    
+            if isempty(inst.class_map) && ~isempty(inst.main_window.clustering_results) && (inst.results_hash ~= inst.main_window.clustering_results.hash_value)
+                tmp = inst.main_window.clustering_results.mapping_ordered;
+                inst.class_map = zeros(size(tmp, 1), inst.main_window.clustering_results.nclasses);
+                for i = 1:inst.main_window.clustering_results.nclasses                    
                     inst.class_map(:, i) = sum(tmp == i, 2);
                 end                    
                 inst.class_map = inst.class_map ./ repmat(sum(inst.class_map >= 0, 2), 1, size(inst.class_map, 2));
-                inst.results_hash = inst.parent.results.hash_value;
-                classes = arrayfun( @(idx) inst.parent.results.classes(idx).description, 1:inst.parent.results.nclasses, 'UniformOutput', 0);
+                inst.results_hash = inst.main_window.clustering_results.hash_value;
+                classes = arrayfun( @(idx) inst.main_window.clustering_results.classes(idx).description, 1:inst.main_window.clustering_results.nclasses, 'UniformOutput', 0);
                 set(inst.class_combo, 'String', classes, 'Value', 1);
             end
                                    
@@ -137,9 +138,7 @@ classdef results_classes_evolution < handle
             inst.update;
         end
         
-        function box_plots(inst)            
-            global g_config;
-            
+        function box_plots(inst)                        
             grps = inst.parent.groups;              
             class = get(inst.class_combo, 'value');
                                                             
@@ -154,7 +153,14 @@ classdef results_classes_evolution < handle
             nanimals = -1;
             set(inst.panels(1), 'Title', 'Box plots');
             
-            for t = 1:g_config.TRIALS
+            if inst.parent.block_end < inst.parent.max_time || inst.parent.block_begin > 0
+                t0 = arrayfun( @(idx) inst.main_window.traj.parent.items(idx).end_time, 1:inst.main_window.traj.parent.count );
+                sel0 = (t0 >= inst.parent.block_begin & t0 <= inst.parent.block_end);
+            else
+                sel0 = ones(1, inst.main_window.traj.parent.count);                
+            end
+            
+            for t = 1:inst.main_window.config.TRIALS
                 grp_idx = 0;                
                 for g = 1:length(grps)                                    
                     ngrp = ngrp + 1;
@@ -169,9 +175,9 @@ classdef results_classes_evolution < handle
                     end
                     
                     if g == 1
-                        sel = find(inst.all_trials == t);
+                        sel = find(sel0 & inst.all_trials == t);
                     else
-                        sel = find(inst.all_trials == t & inst.all_groups == g - 1);
+                        sel = find(sel0 & inst.all_trials == t & inst.all_groups == g - 1);
                     end                                        
                                                             
                     for i = 1:length(sel)       
@@ -185,7 +191,7 @@ classdef results_classes_evolution < handle
                         vals_grps = [vals_grps, ngrp];                        
                         
                         % put it in the matrix for the friedman test
-                        id = inst.parent.traj.parent.items(sel(i)).id;        
+                        id = inst.main_window.traj.parent.items(sel(i)).id;        
                         id_pos = find(ids_grp == id);
                         if length(ids) < grp_idx
                             ids = [ids, grp_idx];
@@ -215,7 +221,7 @@ classdef results_classes_evolution < handle
                     if t == 1 && grp_idx == 1
                         nanimals = length(ids_grp);
                         % now we know the size of the end matrix
-                        tmp = zeros(nanimals*g_config.TRIALS, sum(grps));
+                        tmp = zeros(nanimals*inst.main_window.config.TRIALS, sum(grps));
                         tmp(1:nanimals, 1) = mfried;
                         mfried = tmp;
                     end
@@ -225,7 +231,7 @@ classdef results_classes_evolution < handle
                 d = d + 0.05;
             end
             
-            set(inst.parent.window, 'currentaxes', inst.axis(1));
+            set(inst.main_window.window, 'currentaxes', inst.axis(1));
             hold off;
             % average each value                        
             boxplot(vals, vals_grps, 'positions', pos, 'colors', [0 0 0]);     
@@ -261,7 +267,7 @@ classdef results_classes_evolution < handle
             end
 
             lbls = {};
-            sel = 1:g_config.TRIALS;
+            sel = 1:inst.main_window.config.TRIALS;
             sel = sel(inst.parent.trials == 1);
             lbls = arrayfun( @(i) sprintf('%d', i), sel, 'UniformOutput', 0);     
 
@@ -269,25 +275,24 @@ classdef results_classes_evolution < handle
         end
        
         function area_plots(inst)            
-            global g_config;
             if isempty(inst.class_map)
                 return;
             end
                                                 
-            sel_grp = 1:g_config.GROUPS + 1;
+            sel_grp = 1:inst.main_window.config.GROUPS + 1;
             sel_grp = sel_grp(inst.parent.groups == 1);
             
-            sel_trial = 1:g_config.TRIALS;
+            sel_trial = 1:inst.main_window.config.TRIALS;
             sel_trial = sel_trial(inst.parent.trials == 1);
                         
             leg = {};
-            for i = 1:inst.parent.results.nclasses
-                att = inst.parent.results.classes(i);
+            for i = 1:inst.main_window.clustering_results.nclasses
+                att = inst.main_window.clustering_results.classes(i);
                 leg = [leg, att.description];                
-            end
+            end                       
                         
             for ig = 1:length(sel_grp)                
-                set(inst.parent.window, 'currentaxes', inst.axis(ig));
+                set(inst.main_window.window, 'currentaxes', inst.axis(ig));
                 data = zeros(length(sel_trial), size(inst.class_map, 2));
                 if sel_grp(ig) == 1
                     % everyone
@@ -295,8 +300,9 @@ classdef results_classes_evolution < handle
                 else
                     sel = (inst.all_groups == sel_grp(ig) - 1);
                 end                
-                
-                for it = 1:length(sel_trial)
+                                
+                for it = 1:length(sel_trial)*inst.parent.block_count
+                    
                     data(it, :) = mean(inst.class_map(sel & inst.all_trials == sel_trial(it), :));
                 end
                 
@@ -308,7 +314,7 @@ classdef results_classes_evolution < handle
                 if sel_grp(ig) == 1
                     gn = 'Combined';
                 else
-                    gn = g_config.GROUPS_DESCRIPTION{sel_grp(ig) - 1};
+                    gn = inst.main_window.config.GROUPS_DESCRIPTION{sel_grp(ig) - 1};
                 end
                 set(inst.panels(ig), 'Title', gn);
                 legend(leg, 'Location', 'eastoutside');
@@ -317,19 +323,18 @@ classdef results_classes_evolution < handle
         end
         
         function line_plots(inst)            
-            global g_config;
             if isempty(inst.class_map)
                 return;
             end
                                                 
             class = get(inst.class_combo, 'value');
-            sel_grp = 1:g_config.GROUPS + 1;
+            sel_grp = 1:inst.main_window.config.GROUPS + 1;
             sel_grp = sel_grp(inst.parent.groups == 1);
             
-            sel_trial = 1:g_config.TRIALS;
+            sel_trial = 1:inst.main_window.config.TRIALS;
             sel_trial = sel_trial(inst.parent.trials == 1);
                                     
-            set(inst.parent.window, 'currentaxes', inst.axis(1));
+            set(inst.main_window.window, 'currentaxes', inst.axis(1));
             hold off;
             for ig = 1:length(sel_grp)               
                 data = zeros(length(sel_trial), size(inst.class_map, 2));
@@ -359,38 +364,38 @@ classdef results_classes_evolution < handle
         end
         
         function transitions_plot(inst, prob)            
-            global g_config;
             if isempty(inst.class_map)
                 return;
             end
                                                 
-            sel_grp = 1:g_config.GROUPS + 1;
+            sel_grp = 1:inst.main_window.config.GROUPS + 1;
             sel_grp = sel_grp(inst.parent.groups == 1);
             
-            sel_trial = 1:g_config.TRIALS;
+            sel_trial = 1:inst.main_window.config.TRIALS;
             sel_trial = sel_trial(inst.parent.trials == 1);
                         
             leg = {};
-            for i = 1:inst.parent.results.nclasses
-                att = inst.parent.results.classes(i);
+            for i = 1:inst.main_window.clustering_results.nclasses
+                att = inst.main_window.clustering_results.classes(i);
                 leg = [leg, att.description];                
             end
             
             strings = {};
-            for ci = 1:inst.parent.results.nclasses
+            for ci = 1:inst.main_window.clustering_results.nclasses
                 % normalize feature                        
-                att = inst.parent.results.classes(ci);
+                att = inst.main_window.clustering_results.classes(ci);
                 strings = [strings, att.description];                
             end                    
             
             for ig = 1:length(sel_grp)                
-                set(inst.parent.window, 'currentaxes', inst.axis(ig));
+                set(inst.main_window.window, 'currentaxes', inst.axis(ig));
+                cla;
                                 
                 if prob                   
-                    vals = inst.parent.results.transition_probabilities('Group', sel_grp(ig) - 1);
+                    vals = inst.main_window.clustering_results.transition_probabilities('Group', sel_grp(ig) - 1);
                     tot = -1;
                 else                           
-                    vals = inst.parent.results.transition_counts('Group', sel_grp(ig) - 1);
+                    vals = inst.main_window.clustering_results.transition_counts('Group', sel_grp(ig) - 1);
                     tot = sum(sum(vals));
                     vals = vals ./ repmat(sum(inst.all_groups == sel_grp(ig) - 1), size(vals, 1), size(vals, 2));
                 end
@@ -421,7 +426,7 @@ classdef results_classes_evolution < handle
                 if sel_grp(ig) == 1
                     gn = 'Combined';
                 else
-                    gn = g_config.GROUPS_DESCRIPTION{sel_grp(ig) - 1};
+                    gn = inst.main_window.config.GROUPS_DESCRIPTION{sel_grp(ig) - 1};
                 end
                 if tot > -1
                     gn = sprintf('%s (N = %d)', gn, tot);
@@ -430,9 +435,7 @@ classdef results_classes_evolution < handle
             end
         end
         
-        function transitions_trial(inst)            
-            global g_config;
-            
+        function transitions_trial(inst)                        
             grps = inst.parent.groups;              
                                                                         
             vals = [];
@@ -446,10 +449,10 @@ classdef results_classes_evolution < handle
             nanimals = -1;
             set(inst.panels(1), 'Title', 'Box plots');
             
-            trans = inst.parent.results.transition_counts_trial;
-            trans = trans(inst.parent.traj.segmented_index);
+            trans = inst.main_window.clustering_results.transition_counts_trial;
+            trans = trans(inst.main_window.traj.segmented_index);
             
-            for t = 1:g_config.TRIALS
+            for t = 1:inst.main_window.config.TRIALS
                 grp_idx = 0;                
                 for g = 1:length(grps)                                    
                     ngrp = ngrp + 1;
@@ -480,7 +483,7 @@ classdef results_classes_evolution < handle
                         vals_grps = [vals_grps, ngrp];                        
                         
                         % put it in the matrix for the friedman test
-                        id = inst.parent.traj.parent.items(sel(i)).id;        
+                        id = inst.main_window.traj.parent.items(sel(i)).id;        
                         id_pos = find(ids_grp == id);
                         if length(ids) < grp_idx
                             ids = [ids, grp_idx];
@@ -510,7 +513,7 @@ classdef results_classes_evolution < handle
                     if t == 1 && grp_idx == 1
                         nanimals = length(ids_grp);
                         % now we know the size of the end matrix
-                        tmp = zeros(nanimals*g_config.TRIALS, sum(grps));
+                        tmp = zeros(nanimals*inst.main_window.config.TRIALS, sum(grps));
                         tmp(1:nanimals, 1) = mfried;
                         mfried = tmp;
                     end
@@ -520,7 +523,7 @@ classdef results_classes_evolution < handle
                 d = d + 0.05;
             end
             
-            set(inst.parent.window, 'currentaxes', inst.axis(1));
+            set(inst.main_window.window, 'currentaxes', inst.axis(1));
             hold off;
             % average each value                        
             boxplot(vals, vals_grps, 'positions', pos, 'colors', [0 0 0]);     
@@ -556,7 +559,7 @@ classdef results_classes_evolution < handle
             end
 
             lbls = {};
-            sel = 1:g_config.TRIALS;
+            sel = 1:inst.main_window.config.TRIALS;
             sel = sel(inst.parent.trials == 1);
             lbls = arrayfun( @(i) sprintf('%d', i), sel, 'UniformOutput', 0);     
 

@@ -19,12 +19,11 @@ classdef results_full_trajectories < handle
     
     methods
         function inst = results_full_trajectories(par, par_wnd)
-            global g_config;
             inst.parent = par;
             inst.window = uiextras.VBox('Parent', par_wnd);
             
-            for i = 1:length(g_config.DATA_REPRESENTATION)
-                par = g_config.DATA_REPRESENTATION{i};
+            for i = 1:length(inst.main_window.config.DATA_REPRESENTATION)
+                par = inst.main_window.config.DATA_REPRESENTATION{i};
                 switch par{2}
                     case base_config.DATA_TYPE_SCALAR_FIELD
                         inst.measures_list = [inst.measures_list, ...
@@ -98,7 +97,6 @@ classdef results_full_trajectories < handle
         end
         
         function update_plots(inst, source, event_data)
-            global g_config;
             nx = get(inst.nx_combo, 'value');
             ny = get(inst.ny_combo, 'value');            
             grp = inst.parent.group;
@@ -117,12 +115,12 @@ classdef results_full_trajectories < handle
                     meas_param = inst.measures_list{sel - 1};
                     f = meas_param{3};
                     dr = meas_param{2};
-                    dr_param = g_config.DATA_REPRESENTATION{meas_param{2}};
+                    dr_param = inst.main_window.config.DATA_REPRESENTATION{meas_param{2}};
                     % data type
                     dt = dr_param{2}; 
                     % plot something
                     data = {};
-                    for g = 1:g_config.GROUPS
+                    for g = 1:inst.main_window.config.GROUPS
                         for t = 1:inst.parent.traj.parent.count
                             tg = inst.parent.traj.parent.items(t).group;
                             if grp == 1 || (grp == 2 && g == tg) || (grp - 2) == tg

@@ -1,10 +1,11 @@
-classdef results_single_features < handle
+classdef results_single_features_view < handle
     %RESULTS_SINGLE_FEATURES Summary of this class goes here
     %   Detailed explanation goes here
     
     properties(GetAccess = 'protected', SetAccess = 'protected')
         window = [];    
         parent = [];
+        main_window = [];
         grid = [];
         panels = [];
         axis = [];
@@ -14,15 +15,14 @@ classdef results_single_features < handle
     end
     
     methods
-        function inst = results_single_features(par, par_wnd)                        
+        function inst = results_single_features_view(par, par_wnd)                        
             inst.window = uiextras.VBox('Parent', par_wnd);
-            inst.parent = par;            
+            inst.parent = par;
+            inst.main_window = inst.parent.parent;
         end
         
-        function update(inst)
-            global g_config;
-            
-            n = length(inst.parent.feat);
+        function update(inst)            
+            n = length(inst.main_window.features);
             if isempty(inst.grid)                
                 inst.grid = uiextras.Grid('Parent', inst.window);
                 inst.controls_box = uiextras.HBox('Parent', inst.window);
@@ -50,13 +50,22 @@ classdef results_single_features < handle
                     nc = 4;
                 elseif n <= 15;
                     nr = 3;
-                    nc = 5;
+                    nc = 5;                
+                elseif n <= 20;
+                    nr = 4;
+                    nc = 5;                
+                elseif n <= 24;
+                    nr = 4;
+                    nc = 6;                
+                elseif n <= 30;
+                    nr = 5;
+                    nc = 6;
                 else
                     error('need to update the list above');
                 end
                 for i = 1:nr*nc
                     if i <= n
-                        feat = g_config.FEATURES{inst.parent.feat(i)};
+                        feat = inst.main_window.config.FEATURES{inst.main_window.features(i)};
                         inst.panels = [inst.panels, uiextras.BoxPanel('Parent', inst.grid, 'Title', feat{2})];
                         hbox = uiextras.VBox('Parent', inst.panels(end));
                         inst.axis = [inst.axis, axes('Parent', hbox)];
@@ -72,7 +81,7 @@ classdef results_single_features < handle
                 inst.plot_combo = uicontrol('Parent', inst.controls_box, 'Style', 'popupmenu', 'String', {'Histogram', 'Histogram (fine)', 'Log-Histogram', 'Log-Histogram (fine)', 'CDF'}, 'Callback', @inst.update_plots);
                 set(inst.controls_box, 'Sizes', [100, 200]);
                 state = 'on';
-                if isempty(inst.parent.traj.parent)
+                if isempty(inst.main_window.traj.parent)
                     state = 'off';
                 end
                 inst.full_check = uicontrol('Parent', inst.controls_box, 'Style', 'checkbox', 'String', 'Full trajectories', 'Enable', state, 'Callback', @inst.update_plots);
@@ -82,39 +91,45 @@ classdef results_single_features < handle
         end        
 
         function update_plots(inst, source, event_data)
-            global g_config;
-            
             plt = get(inst.plot_combo, 'value');
             grps = inst.parent.groups;            
             full = get(inst.full_check, 'value');            
             
             if full
-                traj = inst.parent.traj.parent;                
+                traj = inst.main_window.traj.parent;                
             else
-                traj = inst.parent.traj;                
+                traj = inst.main_window.traj;                
             end
             
-            feat_val = traj.compute_features(inst.parent.feat);                
+            feat_val = traj.compute_features(inst.main_window.features);                
             groups = arrayfun( @(t) t.group, traj.items);       
             trials = arrayfun( @(t) t.trial, traj.items);                       
             types = arrayfun( @(t) t.trial_type, traj.items);
             
-            for i = 1:length(inst.parent.feat)                  
+            if inst.parent.block_end < inst.parent.max_time || inst.parent.block_begin > 0
+                t0 = arrayfun( @(idx) traj.items(idx).end_time, 1:traj.count );
+                sel0 = (t0 >= inst.parent.block_begin & t0 <= inst.parent.block_end);
+            else
+                sel0 = ones(1, traj.count);                
+            end
+            
+            for i = 1:length(inst.main_window.features)                  
                 % store values for possible later significance test            
                 vals = {};
-                set(inst.parent.window, 'currentaxes', inst.axis(i));                
+                set(inst.main_window.window, 'currentaxes', inst.axis(i));
+                cla;
                 hold off;
                 for g = 1:length(grps)
                     if ~grps(g) 
                         continue;
                     end
                     if g == 1
-                        sel = (inst.parent.trials(trials) == 1);                        
+                        sel = sel0 & (inst.parent.trials(trials) == 1);                        
                     else
-                        sel = (groups == g - 1 & inst.parent.trials(trials) == 1);                        
+                        sel = sel0 & (groups == g - 1 & inst.parent.trials(trials) == 1);                        
                     end
                     if inst.parent.trial_type
-                        sel = (sel & types == inst.parent.trial_type);                        
+                        sel = sel & (sel & types == inst.parent.trial_type);                        
                     end
                     sel = find(sel);
                     

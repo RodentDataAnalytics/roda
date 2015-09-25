@@ -76,6 +76,11 @@ classdef trajectory < handle
             inst.hash_ = -1;
         end
         
+        function set_group(inst, new_group)
+            inst.group = new_group;
+            inst.hash_ = -1;
+        end
+        
         function cache_feature_value(inst, feat, val)
             if isempty(inst.feat_val_)
                 inst.feat_val_ = containers.Map('KeyType', 'uint32', 'ValueType', 'any');
