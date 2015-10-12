@@ -41,14 +41,9 @@ classdef config_place_avoidance_mem < config_place_avoidance
             inst@config_place_avoidance('Place avoidance task (memantine)');                                               
         end
                
-    end
-   
-    methods(Static)
+       
         % Imports trajectories from Noldus data file's
-        function traj = load_data(merge)
-            addpath(fullfile(fileparts(mfilename('fullpath')),'../import/place_avoidance'));
-            
-            root = '/home/tiago/place_avoidance/data2/';
+        function res = load_data(inst, root, merge)            
             traj = trajectories([]);
             sub_folders = {'control', 'MK_high', 'MK_medium', 'MK_low', 'mem_high', 'mem_medium', 'mem_low' };
             groups = [ config_place_avoidance_mem.GROUP_CONTROL, ...
@@ -73,20 +68,20 @@ classdef config_place_avoidance_mem < config_place_avoidance
                 for f = 1:length(sub_folders)
                     % load training part (divided in 3 x 5 min trials)
                     pat = sprintf('*d%dtr*Room*.dat', day);     
-                    new_traj = load_trajectories([root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day); 
-                    
+                    new_traj = config_place_avoidance.load_trajectories(inst, [root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day); 
+
                     % load testing part (5 min)
                     pat = sprintf('*d%dts*Room*.dat', day);     
-                    new_traj_test = load_trajectories([root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day);
-                                        
+                    new_traj_test = config_place_avoidance.load_trajectories(inst, [root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day);
+
                     if nargin > 0 && merge == 1
                         % combine training + testing part
-                            for ii = 1:new_traj.count
+                        for ii = 1:new_traj.count
                             % find matching testing
                             found = 0;
                             for jj = 1:new_traj_test.count
                                 if new_traj_test.items(jj).id == new_traj.items(ii).id
-                                    traj = traj.append( trajectory( [new_traj.items(ii).points; new_traj_test.items(jj).points], ...
+                                    traj = traj.append( trajectory( inst, [new_traj.items(ii).points; new_traj_test.items(jj).points], ...
                                                      new_traj.items(ii).set, ...
                                                      track, ...
                                                      new_traj.items(ii).group, ...
@@ -111,7 +106,7 @@ classdef config_place_avoidance_mem < config_place_avoidance
                             if isempty(pos1)
                                 continue;
                             end
-                            traj = traj.append( trajectory( new_traj.items(t).points(1:pos1(1) - 1, :), ...
+                            traj = traj.append( trajectory( inst, new_traj.items(t).points(1:pos1(1) - 1, :), ...
                                                      new_traj.items(t).set, ...
                                                      track, ...
                                                      new_traj.items(t).group, ...
@@ -125,7 +120,7 @@ classdef config_place_avoidance_mem < config_place_avoidance
                             if isempty(pos2)
                                 continue;
                             end
-                            traj = traj.append( trajectory( new_traj.items(t).points(pos1(1):pos2(1) - 1, :), ...
+                            traj = traj.append( trajectory( inst, new_traj.items(t).points(pos1(1):pos2(1) - 1, :), ...
                                                      new_traj.items(t).set, ...
                                                      track, ...
                                                      new_traj.items(t).group, ...
@@ -139,7 +134,7 @@ classdef config_place_avoidance_mem < config_place_avoidance
                             if isempty(pos3)
                                 pos3 = size(new_traj.items(t).points, 1) + 1;
                             end
-                            traj = traj.append( trajectory( new_traj.items(t).points(pos2(1):pos3(1) - 1, :), ...
+                            traj = traj.append( trajectory( inst, new_traj.items(t).points(pos2(1):pos3(1) - 1, :), ...
                                                      new_traj.items(t).set, ...
                                                      track, ...
                                                      new_traj.items(t).group, ...
@@ -160,7 +155,9 @@ classdef config_place_avoidance_mem < config_place_avoidance
                         traj = traj.append(new_traj_test);
                     end                    
                 end
-            end            
-        end        
+            end
+            inst.TRAJECTORIES = traj;
+            res = 1;       
+        end
     end
 end

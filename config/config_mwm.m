@@ -82,7 +82,6 @@ classdef config_mwm < base_config
         TAGS250_70 = 3;
         TAGS300_70 = 4;
                         
-        OUTPUT_DIR = '/home/tiago/results/'; % where to put all the graphics and other generated output
         CLASSES_COLORMAP = @jet;
     end
     
@@ -142,7 +141,7 @@ classdef config_mwm < base_config
         end
                 
         % Imports trajectories from Noldus data file's
-        function traj = load_data(inst)
+        function traj = load_data(inst, path)
             addpath(fullfile(fileparts(mfilename('fullpath')),'../../import/noldus'));
             traj = load_trajectories(1:3, 1, 'DeltaX', -100, 'DeltaY', -100);
         end        

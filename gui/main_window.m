@@ -1,7 +1,7 @@
 classdef main_window < handle
     %MAIN_WINDOW Summary of this class goes here
     %   Detailed explanation goes here    
-    properties(GetAccess = 'public', SetAccess = 'protected')        
+    properties(GetAccess = 'public', SetAccess = 'protected')                
         features = [];  
         features_values = [];
         features_display = [];
@@ -32,31 +32,30 @@ classdef main_window < handle
     end
     
     methods
-        function inst = main_window(labels_fn, traj, varargin)
-            global g_config;
+        function inst = main_window(cfg, varargin)
             %%% HACK OpenGL renderer has some problems -> use SW rendering instead
             set(0, 'DefaultFigureRenderer', 'painters');
             %
-            inst.config = g_config;
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern'));    
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout'));
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout/Patch'));
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/cm_and_cb_utilities'));
             
             [inst.tags, inst.features_display, inst.features_cluster, inst.selection, inst.reference_results, name] = process_options(varargin, ...
-                        'Tags', g_config.TAGS, 'Features', g_config.DEFAULT_FEATURE_SET, ...
-                        'ClusteringFeatures', g_config.CLUSTERING_FEATURE_SET, ...
+                        'Tags', cfg.TAGS, 'Features', cfg.DEFAULT_FEATURE_SET, ...
+                        'ClusteringFeatures', cfg.CLUSTERING_FEATURE_SET, ...
                         'UserSelection', [], 'ReferenceClassification', [], ...
                         'Name', 'Trajectories tagging' ...
             );
             
             % read labels if we already have something
-            inst.traj = traj;
-            inst.labels_filename = labels_fn;
+            inst.config = cfg;
+            inst.traj = inst.config.TRAJECTORIES;
+            inst.labels_filename = ''; % inst.config.config.labels_fn;
             inst.traj_labels = zeros(inst.traj.count, length(inst.tags));
-            if exist(labels_fn, 'file')
-                [labels_data, label_tags] = traj.read_tags(labels_fn, g_config.TAG_TYPE_ALL);
-                [labels_map, labels_idx] = traj.match_tags(labels_data, label_tags);
+            if exist(inst.labels_filename, 'file')
+                [labels_data, label_tags] = inst.traj.read_tags(inst.labels_filename, cfg.TAG_TYPE_ALL);
+                [labels_map, labels_idx] = inst.traj.match_tags(labels_data, label_tags);
                 non_matched = sum(labels_idx == -1);
                 if non_matched > 0
                     fprintf('Warning: %d unmatched trajectories/segments found!\n', non_matched);

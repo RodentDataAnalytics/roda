@@ -2,6 +2,7 @@ classdef trajectory < handle
     %TRAJECTORY Stores points of a trajectory or segment of trajectory
     
     properties(GetAccess = 'public', SetAccess = 'protected')
+        config = [];
         points = [];
         % trajectory/segment identification
         set = -1;
@@ -15,8 +16,7 @@ classdef trajectory < handle
         session = -1;
         start_time = -1;
         end_time = -1;
-        start_index = -1;
-        
+        start_index = -1;        
     end
     
     properties(GetAccess = 'protected', SetAccess = 'protected')        
@@ -26,8 +26,8 @@ classdef trajectory < handle
     
     methods
         % constructor
-        function traj = trajectory(pts, set, track, group, id, trial, segment, off, starti, trial_type)
-            global g_config;
+        function traj = trajectory(cfg, pts, set, track, group, id, trial, segment, off, starti, trial_type)
+            traj.config = cfg;
             traj.points = pts;                       
             traj.set = set;
             traj.track = track;
@@ -39,8 +39,8 @@ classdef trajectory < handle
             traj.segment = segment;
             traj.offset = off;            
             tot = 0;
-            for i = 1:length(g_config.TRIALS_PER_SESSION)
-                tot = tot + g_config.TRIALS_PER_SESSION(i);
+            for i = 1:length(traj.config.TRIALS_PER_SESSION)
+                tot = tot + traj.config.TRIALS_PER_SESSION(i);
                 if trial <= tot
                     traj.session = i;
                     break;
@@ -48,10 +48,10 @@ classdef trajectory < handle
             end
             traj.start_time = pts(1, 1);
             traj.end_time = pts(end, 1);
-            if nargin > 9
+            if nargin > 10
                 traj.trial_type = trial_type;
             else
-                traj.trial_type = g_config.TRIAL_TYPE(trial);
+                traj.trial_type = traj.config.TRIAL_TYPE(trial);
             end
         end
         
@@ -61,13 +61,12 @@ classdef trajectory < handle
         end
         
         function set_trial(inst, new_trial, trial_type)
-            global g_config;
             inst.trial = new_trial;
             inst.hash_ = -1;
             if nargin > 2
                 inst.trial_type = trial_type;          
             else
-                inst.trial_type = g_config.TRIAL_TYPE(inst.trial);
+                inst.trial_type = inst.config.TRIAL_TYPE(inst.trial);
             end
         end
         
@@ -93,13 +92,12 @@ classdef trajectory < handle
         end
         
         function out = hash_value(traj)       
-            global g_config;
             if traj.hash_ == -1                                          
                 % compute hash
                 len = 0;
                 if traj.offset ~= -1
                     % length taken only into account when offset is used
-                    len = traj.compute_feature(g_config.FEATURE_LENGTH);
+                    len = traj.compute_feature(inst.config.FEATURE_LENGTH);
                 end
                 traj.hash_ = trajectory.compute_hash(traj.set, traj.session, traj.track, traj.offset, len);
             end
@@ -131,7 +129,7 @@ classdef trajectory < handle
                end
             end
              
-            segment = trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, 0, beg, starti);   
+            segment = trajectory(traj.config, pts, traj.set, traj.track, traj.group, traj.id, traj.trial, 0, beg, starti);   
         end
         
         function C = centre(traj)           
@@ -158,7 +156,7 @@ classdef trajectory < handle
         function [ V ] = compute_features(traj, feat)
         %COMPUTE_FEATURES Computes a set of features for a trajectory
         %   COMPUTE_FEATURES(traj, [F1, F2, ... FN]) computes features F1, F2, ..
-        %   FN for trajectory traj (features are identified by g_config defined 
+        %   FN for trajectory traj (features are identified by config defined 
         %   at the beginning of this class    
             V = [];
             for i = 1:length(feat)
@@ -167,11 +165,9 @@ classdef trajectory < handle
         end            
         
         function val = compute_feature(inst, feat)
-            global g_config;
-            
             % see if value already cached
             if isempty(inst.feat_val_) || ~inst.feat_val_.isKey(feat)
-                par = g_config.FEATURES{feat};                
+                par = inst.config.FEATURES{feat};                
                 f = str2func(par{3}); % function name
                 idx = 1; % return value index
                 if length(par) > 3
@@ -199,25 +195,24 @@ classdef trajectory < handle
             end           
         end    
         
-        function plot(traj, varargin)
-            global g_config;
+        function plot(inst, varargin)
             addpath(fullfile(fileparts(mfilename('fullpath')), '/extern'));
             [clr, arn, ls, lw] = process_options(varargin, ...
                 'Color', [0 0 0], 'DrawArena', 1, 'LineSpec', '-', 'LineWidth', 1);
             if arn
                 axis off;
                 daspect([1 1 1]);                      
-                rectangle('Position',[g_config.CENTRE_X - g_config.ARENA_R, g_config.CENTRE_Y - g_config.ARENA_R, g_config.ARENA_R*2, g_config.ARENA_R*2],...
+                rectangle('Position',[inst.config.CENTRE_X - inst.config.ARENA_R, inst.config.CENTRE_Y - inst.config.ARENA_R, inst.config.ARENA_R*2, inst.config.ARENA_R*2],...
                     'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);
                 hold on;
                 axis square;
                 % see if we have a platform to draw
-                if exist('g_config.PLATFORM_X')
-                    rectangle('Position',[g_config.PLATFORM_X - g_config.PLATFORM_R, g_config.PLATFORM_Y - g_config.PLATFORM_R, 2*g_config.PLATFORM_R, 2*g_config.PLATFORM_R],...
+                if exist('inst.config.PLATFORM_X')
+                    rectangle('Position',[inst.config.PLATFORM_X - inst.config.PLATFORM_R, inst.config.PLATFORM_Y - inst.config.PLATFORM_R, 2*inst.config.PLATFORM_R, 2*inst.config.PLATFORM_R],...
                         'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);             
                 end
             end
-            plot(traj.points(:,2), traj.points(:,3), ls, 'LineWidth', lw, 'Color', clr);           
+            plot(inst.points(:,2), inst.points(:,3), ls, 'LineWidth', lw, 'Color', clr);           
             set(gca, 'LooseInset', [0,0,0,0]);
         end      
         
@@ -226,18 +221,16 @@ classdef trajectory < handle
         end
         
         function pts = data_representation(inst, idx, varargin)
-            global g_config;
-            assert(idx <= length(g_config.DATA_REPRESENTATION));
+            assert(idx <= length(inst.config.DATA_REPRESENTATION));
             % dispatch the call to the function registered globally
-            att = g_config.DATA_REPRESENTATION{idx};
+            att = inst.config.DATA_REPRESENTATION{idx};
             f = str2func(att{3});
             pts = f(inst, att{4:end}, varargin{:});
         end
         
         function segs = partition(inst, idx, varargin)
-            global g_config;
-            assert(idx <= length(g_config.SEGMENTATIONS));
-            att = g_config.SEGMENTATIONS{idx};
+            assert(idx <= length(inst.config.SEGMENTATIONS));
+            att = inst.config.SEGMENTATIONS{idx};
             f = str2func(att{2});
             segs = f(inst, att{3:end}, varargin{:});
         end

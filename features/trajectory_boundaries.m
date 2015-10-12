@@ -1,7 +1,6 @@
 function [ x, y, a, b, inc ] = trajectory_boundaries( traj, varargin )
-    global g_config;
-    x = g_config.CENTRE_X;
-    y = g_config.CENTRE_Y;
+    x = traj.config.CENTRE_X;
+    y = traj.config.CENTRE_Y;
     a = 0;
     b = 0;
     inc = 0;
@@ -22,12 +21,12 @@ function [ x, y, a, b, inc ] = trajectory_boundaries( traj, varargin )
         end
     else
         % see we have cached values
-        if traj.has_feature_value(g_config.FEATURE_BOUNDARY_CENTRE_X)
-            x = traj.compute_feature(g_config.FEATURE_BOUNDARY_CENTRE_X);
-            y = traj.compute_feature(g_config.FEATURE_BOUNDARY_CENTRE_Y);
-            a = traj.compute_feature(g_config.FEATURE_BOUNDARY_RADIUS_MIN);
-            b = traj.compute_feature(g_config.FEATURE_BOUNDARY_RADIUS_MAX);
-            inc = traj.compute_feature(g_config.FEATURE_BOUNDARY_INCLINATION);
+        if traj.has_feature_value(traj.config.FEATURE_BOUNDARY_CENTRE_X)
+            x = traj.compute_feature(traj.config.FEATURE_BOUNDARY_CENTRE_X);
+            y = traj.compute_feature(traj.config.FEATURE_BOUNDARY_CENTRE_Y);
+            a = traj.compute_feature(traj.config.FEATURE_BOUNDARY_RADIUS_MIN);
+            b = traj.compute_feature(traj.config.FEATURE_BOUNDARY_RADIUS_MAX);
+            inc = traj.compute_feature(traj.config.FEATURE_BOUNDARY_INCLINATION);
         else
             if size(traj.points, 1) > 3
                 [A, cntr] = min_enclosing_ellipsoid(traj.points(:, 2:3)', 1e-1);
@@ -37,11 +36,11 @@ function [ x, y, a, b, inc ] = trajectory_boundaries( traj, varargin )
                     [a, b, inc] = ellipse_parameters(A);
                 end
                 % cache values
-                traj.cache_feature_value(g_config.FEATURE_BOUNDARY_CENTRE_X, x);
-                traj.cache_feature_value(g_config.FEATURE_BOUNDARY_CENTRE_Y, y);
-                traj.cache_feature_value(g_config.FEATURE_BOUNDARY_RADIUS_MIN, a);
-                traj.cache_feature_value(g_config.FEATURE_BOUNDARY_RADIUS_MAX, b);
-                traj.cache_feature_value(g_config.FEATURE_BOUNDARY_INCLINATION, inc);                
+                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_CENTRE_X, x);
+                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_CENTRE_Y, y);
+                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_RADIUS_MIN, a);
+                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_RADIUS_MAX, b);
+                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_INCLINATION, inc);                
             end
         end
     end                    

@@ -1,6 +1,5 @@
 function val = trajectory_time_within_radius( traj, r, varargin )
-    global g_config;
-    [repr, x0, y0] = process_options(varargin, 'DataRepresentation', 1, 'X0', g_config.CENTRE_X, 'Y0', g_config.CENTRE_Y);
+    [repr, x0, y0] = process_options(varargin, 'DataRepresentation', 1, 'X0', traj.config.CENTRE_X, 'Y0', traj.config.CENTRE_Y);
     pts = traj.data_representation(repr);
     ltot = 0;
     lins = 0;

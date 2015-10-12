@@ -26,19 +26,19 @@ classdef config_place_avoidance_silver < config_place_avoidance
         function inst = config_place_avoidance_silver()            
             inst@config_place_avoidance('Place avoidance task (silver)');                                   
         end
-    end
-    
-    methods(Static)
+        
         % Imports trajectories from Noldus data file's
-        function traj = load_data()
-            addpath(fullfile(fileparts(mfilename('fullpath')),'../import/place_avoidance'));
-
+        function res = load_data(inst, root)            
             % "Silver" set
-            folder = '/home/tiago/place_avoidance/data3/';
+            % folder = '/home/tiago/place_avoidance/data3/';
             % control
-            traj = load_trajectories(folder, 1, 'FilterPattern', 'ho*Room*.dat', 'IdDayMask', 'hod%dr%d', 'ReverseDayId', 1); 
+            traj = config_place_avoidance.load_trajectories(inst, root, 1, 'FilterPattern', 'ho*Room*.dat', 'IdDayMask', 'hod%dr%d', 'ReverseDayId', 1); 
+            
             % silver
-            traj = traj.append(load_trajectories(folder, 2, 'FilterPattern', 'nd*Room*.dat', 'IdDayMask', 'nd%dr%d', 'ReverseDayId', 1));           
+            traj = traj.append(config_place_avoidance.load_trajectories(inst, root, 2, 'FilterPattern', 'nd*Room*.dat', 'IdDayMask', 'nd%dr%d', 'ReverseDayId', 1));           
+            
+            inst.TRAJECTORIES = traj;
+            res = 1;
         end        
     end
 end

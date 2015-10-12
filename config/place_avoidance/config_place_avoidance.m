@@ -1,8 +1,6 @@
 classdef config_place_avoidance < base_config
     % config_mwm Global constants
-    properties(Constant)
-        RESULTS_DIR = 'results/place_avoidance_t1';
-                
+    properties(Constant)                
         TRIAL_TYPE_APAT_HABITUATION = 1;
         TRIAL_TYPE_APAT_TRAINING = 2;
         TRIAL_TYPE_APAT_TEST = 3;
@@ -70,7 +68,6 @@ classdef config_place_avoidance < base_config
                                        ];
          
         % plot properties
-        OUTPUT_DIR = '/home/tiago/results/'; % where to put all the graphics and other generated output
         CLASSES_COLORMAP = @jet;   
                  
         % which part of the trajectories are to be taken
@@ -103,8 +100,8 @@ classdef config_place_avoidance < base_config
             
     methods        
         function inst = config_place_avoidance(name, varargin)
-            addpath(fullfile(fileparts(mfilename('fullpath')), 'place_avoidance'));
             addpath(fullfile(fileparts(mfilename('fullpath')), '../../extern'));
+            
             [feat_set, clus_feat_set, r, x, y, rot, npca] = process_options(varargin, ...
                 'FeatureSet', config_place_avoidance.FEATURE_SET_APAT, ...
                 'ClusteringFeatureset', config_place_avoidance.CLUSTERING_FEATURE_SET_APAT, ...
@@ -152,6 +149,125 @@ classdef config_place_avoidance < base_config
             inst.CENTRE_X = x;
             inst.CENTRE_Y = y;
             inst.ROTATION_FREQUENCY = rot;
-        end                       
+        end                
+        
+    end
+    
+    methods(Static)   
+        function traj = load_trajectories(config, path, traj_group, varargin) 
+        %LOAD_TRAJECTORIES Loads a set of trajectories from a given folder
+            % filter: 
+            % 0 == all, 
+            % 1 == room coordinate system only, 
+            % 2 == arena coordinate system only
+            % 3 == whatever, I don't care      
+            [filt_pat, id_day_mask, rev_day, force_trial] = process_options(varargin, 'FilterPattern', '*Room*.dat', ...
+                                                                         'IdDayMask', 'r%dd%d', ...
+                                                                         'ReverseDayId', 0, ...
+                                                                         'Trial', 0);
+
+            % contruct object to hold trajectories
+            traj = trajectories([]);
+            persistent track;
+            if isempty(track)        
+                track = 1;
+            end
+
+            if path(end) ~= '/'
+                path = [path '/'];
+            end
+            files = dir(fullfile(path, filt_pat));
+            if length(files) == 0
+                return;
+            end
+
+            fprintf('Importing %d trajectories...\n', length(files));
+
+            for j = 1:length(files)  
+                % read trajectory from fiel
+                pts = config_place_avoidance.read_trajectory(strcat(path, '/', files(j).name));
+                if size(pts, 1) == 0
+                    continue;
+                end
+
+                temp = sscanf(files(j).name, id_day_mask);
+                if rev_day
+                    id = temp(2);
+                    trial = temp(1);
+                else
+                    id = temp(1);
+                    trial = temp(2);
+                end
+                if force_trial > 0
+                    trial = force_trial;
+                end        
+
+                % find group for this trajectory
+                if length(traj_group) == 1
+                    % fixed group
+                    group = traj_group;
+                else
+                    % look up group from the list of rat ids            
+                    pos = find(traj_group(:,1) == id); 
+                    assert(~isempty(pos));
+                    group = traj_group(pos(1),2);
+                end
+
+                traj = traj.append(trajectory(config, pts, 1, track, group, id, trial, -1, -1, 1));  
+                track = track + 1;
+            end                                              
+
+            fprintf(' done.\n');
+        end
+                
+        function pts = read_trajectory( fn, id_day_mask )
+        %READ_TRAJECTORY Reads a trajectory from a file (native Ethovision format
+        %supported)
+            if ~exist(fn, 'file')
+                error('Non-existent file');
+            end
+
+            % use a 3rd party function to read the file; matlab's csvread is a complete joke
+            data = robustcsvread(fn);
+            err = 0;
+            pts = [];
+
+            % HACK because of some Matlab stupidity
+            for i = 1:length(data)        
+                if isempty(data{i, 1})
+                    data{i, 1} = '';
+                end
+            end
+
+            %%
+            %% parse the file
+            %%
+
+            % look for beggining of trajectory points
+            l = strmatch('%%END_HEADER', data(:, 1));
+            if isempty(l)
+                err = 1;
+            else
+               for i = (l + 1):length(data)
+                   % extract time, X and Y coordinates
+                   if ~isempty(data{i, 1})
+                       t = sscanf(data{i, 2}, '%f');
+                       x = sscanf(data{i, 3}, '%f');
+                       y = sscanf(data{i, 4}, '%f');
+                       stat = sscanf(data{i, 6}, '%f'); % point status
+                       % discard missing smaples
+                       if ~isempty(t) && ~isempty(x) && ~isempty(y) && ~isempty(stat) && stat ~= config_place_avoidance.POINT_STATE_BAD
+                           if ~(x == 0 && y == 0) 
+                               pts = [pts; t/1000. x y stat];
+                           end
+                       end
+                   end
+               end
+            end
+
+            if err
+                exit('invalid file format');
+            end
+        end
     end
 end

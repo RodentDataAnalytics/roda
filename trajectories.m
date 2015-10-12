@@ -20,12 +20,16 @@ classdef trajectories < handle
         parent_mapping_ = [];
         segmented_idx_ = [];
         segmented_map_ = [];
+        config_ = [];
     end
     
     methods
         % constructor
         function inst = trajectories(traj)
             inst.items = traj;
+            if ~isempty(traj)
+                inst.config_ = traj(1).config;
+            end
             trajectories.load_cache;            
         end
                
@@ -37,8 +41,14 @@ classdef trajectories < handle
             obj2 = trajectories([]);    
             if isa(x, 'trajectory')
                 obj2.items = [obj.items, x];
+                if isempty(obj.config_)
+                    obj.config_ = x.config;
+                end            
             elseif isa(x, 'trajectories')
                 obj2.items = [obj.items, x.items];
+                if isempty(obj.config_)
+                    obj.config_ = x.config_;
+                end
             else
                 error('Ops');
             end
@@ -212,11 +222,10 @@ classdef trajectories < handle
             
             % cache feature values            
             global g_feature_values_cache;
-            global g_config;
             
             featval = zeros(obj.count, length(feat));            
             for idx = 1:length(feat)
-                att = g_config.FEATURES{feat(idx)};
+                att = obj.config_.FEATURES{feat(idx)};
                 % check if we already have the values for this feature cached
                 key = hash_combine(obj.hash_value, hash_value(att{2}));
             
@@ -257,7 +266,6 @@ classdef trajectories < handle
         end
 
         function save_tags(obj, fn, tags, map, filter)
-            global g_config;
             %SAVE_TAGS Summary of this function goes here
             %   Detailed explanation goes here            
             if isempty(filter)
@@ -274,7 +282,7 @@ classdef trajectories < handle
                         l = 0; % len
                     else % a segment -> use real values for offset/length
                         d = floor(obj.items(filter(i)).offset); % take only the integer part
-                        l = floor(obj.items(filter(i)).compute_feature(g_config.FEATURE_LENGTH)); % idem, only integer part
+                        l = floor(obj.items(filter(i)).compute_feature(obj.config_.FEATURE_LENGTH)); % idem, only integer part
                     end
                     
                     % store set,session,track#,offset,length
@@ -336,7 +344,6 @@ classdef trajectories < handle
         end                   
         
         function res = classifier(inst, labels_fn, feat, tags_type, hyper_tags, npca_feat)
-            global g_config;
             if exist(labels_fn, 'file')
                 if nargin > 3
                     [labels_data, tags] = trajectories.read_tags(labels_fn, tags_type);            
@@ -357,7 +364,7 @@ classdef trajectories < handle
             end
             
             % add the 'undefined' tag index
-            undef_tag_idx = tag.tag_position(tags, g_config.UNDEFINED_TAG_ABBREVIATION);
+            undef_tag_idx = tag.tag_position(tags, inst.config_.UNDEFINED_TAG_ABBREVIATION);
             if undef_tag_idx > 0
                 tags = tags([1:undef_tag_idx - 1, (undef_tag_idx + 1):length(tags)]);          
                 tag_new_idx = [1:undef_tag_idx, undef_tag_idx:length(tags)];
@@ -471,7 +478,7 @@ classdef trajectories < handle
                     end
                     % all right now try to match the offset
                     if abs(inst.items(i).offset - seg_dist - other_seg.items(idx).offset) < tolerance && ...
-                       abs(inst.items(i).compute_feature(base_config.FEATURE_LENGTH) - other_seg.items(idx).compute_feature(base_config.FEATURE_LENGTH)) < len_tolerance
+                       abs(inst.items(i).compute_feature(base_config_.FEATURE_LENGTH) - other_seg.items(idx).compute_feature(base_config_.FEATURE_LENGTH)) < len_tolerance
                         % we have a match!
                         mapping(i) = idx;
                         idx = idx + 1;                  
@@ -482,66 +489,8 @@ classdef trajectories < handle
                 end
             end
         end      
-    end
-    
-    %%
-    %% STATIC MEMBERS
-    %%
-    methods(Static)
-        function save_cache
-            global g_feature_values_cache;
-            global g_outliers_cache;
-            
-            cache_dir = fullfile(fileparts(mfilename('fullpath')),'/cache');
-            if ~exist(cache_dir, 'dir')
-                mkdir(cache_dir);
-            end
-            
-            if ~isempty(g_feature_values_cache)
-                fn = fullfile(cache_dir,'feature_values.mat');
-                save(fn, 'g_feature_values_cache');
-            end
-            
-            if ~isempty(g_outliers_cache)
-                fn = fullfile(cache_dir, 'outliers.mat');
-                save(fn, 'g_outliers_cache');
-            end            
-        end
         
-        function load_cache
-            global g_feature_values_cache;
-            global g_outliers_cache;
-            
-            if isempty(g_feature_values_cache)                          
-                fn = fullfile(fileparts(mfilename('fullpath')),'/cache/feature_values.mat');                
-                if exist(fn, 'file')
-                    load(fn, 'g_feature_values_cache');
-                end
-            end
-            
-            if isempty(g_outliers_cache)
-                fn = fullfile(fileparts(mfilename('fullpath')),'/cache/outliers.mat');                
-                if exist(fn, 'file')
-                    load(fn, 'g_outliers_cache');
-                end
-            end
-        end
-        
-        
-        function purge_cache
-            fn = fullfile(fileparts(mfilename('fullpath')),'/cache/feature_values.mat');                
-            if exist(fn, 'file')
-                delete(fn);
-            end
-            
-            fn = fullfile(fileparts(mfilename('fullpath')),'/cache/outliers.mat');                
-            if exist(fn, 'file')
-                delete(fn);
-            end            
-        end            
-            
         function [map, tags] = read_tags(fn, tag_type)
-            global g_config;
             % READ_TAGS(FN, TAG_TYPE)
             %   Reads tags from file FN filtering by tags of type TAG_TYPE only
             %   Tags are sorted according to their score value (if available)
@@ -578,11 +527,11 @@ classdef trajectories < handle
                         end
                         if ~found                            
                             % add to tags list
-                            for l = 1:length(g_config.TAGS)
-                                if strcmp(g_config.TAGS(l).abbreviation, labels{i, k})
+                            for l = 1:length(inst.config_.TAGS)
+                                if strcmp(inst.config_.TAGS(l).abbreviation, labels{i, k})
                                     found = 1;                                        
-                                    if nargin < 2 || tag_type == g_config.TAG_TYPE_ALL || g_config.TAGS(l).type == tag_type
-                                        tags = [tags, g_config.TAGS(l)];
+                                    if nargin < 2 || tag_type == inst.config_.TAG_TYPE_ALL || inst.config_.TAGS(l).type == tag_type
+                                        tags = [tags, inst.config_.TAGS(l)];
                                         lbls_idx = [lbls_idx, length(tags)];
                                     end
                                     break;
@@ -610,6 +559,64 @@ classdef trajectories < handle
                 map{i, 2} = lbls; 
             end
         end
+    end
+    
+    %%
+    %% STATIC MEMBERS
+    %%
+    methods(Static)
+        function save_cache
+            global g_feature_values_cache;
+            global g_outliers_cache;
+            
+            cache_dir = fullfile(fileparts(mfilename('fullpath')),'/cache');
+            if ~exist(cache_dir, 'dir')
+                mkdir(cache_dir);
+            end
+            
+            if ~isempty(g_feature_values_cache)
+                fn = fullfile(cache_dir,'feature_values.mat');
+                save(fn, 'g_feature_values_cache');
+            end
+            
+            if ~isempty(g_outliers_cache)
+                fn = fullfile(cache_dir, 'outliers.mat');
+                save(fn, 'g_outliers_cache');
+            end            
+        end
+        
+        function load_cache
+            global g_feature_values_cache;
+            global g_outliers_cache;
+            
+            if isempty(g_feature_values_cache)                          
+                fn = [globals.CACHE_DIRECTORY '/feature_values.mat'];                
+                if exist(fn, 'file')
+                    load(fn, 'g_feature_values_cache');
+                end
+            end
+            
+            if isempty(g_outliers_cache)
+                fn = [globals.CACHE_DIRECTORY '/outliers.mat'];                
+                if exist(fn, 'file')
+                    load(fn, 'g_outliers_cache');
+                end
+            end
+        end        
+        
+        function purge_cache
+            fn = [globals.CACHE_DIRECTORY  '/feature_values.mat'];                
+            if exist(fn, 'file')
+                delete(fn);
+            end
+            
+            fn = [globals.CACHE_DIRECTORY '/cache/outliers.mat'];                
+            if exist(fn, 'file')
+                delete(fn);
+            end            
+        end            
+            
+        
     end
 end
 

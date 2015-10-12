@@ -1,4 +1,4 @@
-classdef base_config    
+classdef base_config < handle
     properties(Constant)        
         UNDEFINED_TAG_ABBREVIATION = 'UD'; 
         UNDEFINED_TAG_INDEX = 1;        
@@ -93,7 +93,9 @@ classdef base_config
         DATA_REPRESENTATION = [];
         FEATURES = [];  
         SEGMENTATIONS = [];
-        NUMBER_FEATURES_PCA = 0;                                  
+        NUMBER_FEATURES_PCA = 0;                
+        OUTPUT_DIR = [];
+        TRAJECTORIES = [];
     end
     
     methods
@@ -107,6 +109,17 @@ classdef base_config
         
         function val = hash(inst)
            val = hash_value(inst.DESCRIPTION);
-        end               
+        end   
+        
+        function set_trajectories(inst, traj)
+            inst.TRAJECTORIES = traj;
+        end
+                
+        function set_output_directory(inst, new_dir)
+            inst.OUTPUT_DIR = new_dir;
+            if ~exist(inst.OUTPUT_DIR, 'dir')
+                mkdir(inst.OUTPUT_DIR);
+            end                        
+        end                
     end        
 end
