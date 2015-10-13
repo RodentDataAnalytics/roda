@@ -18,4 +18,5 @@ if ~sel_cfg.show
 end
 
 % show main window
-main_window(sel_cfg.selected_config);
+main = main_window(sel_cfg.selected_config);
+main.show();

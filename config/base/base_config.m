@@ -96,6 +96,7 @@ classdef base_config < handle
         NUMBER_FEATURES_PCA = 0;                
         OUTPUT_DIR = [];
         TRAJECTORIES = [];
+        SUB_CONFIGURATION = [];
     end
     
     methods
@@ -121,5 +122,9 @@ classdef base_config < handle
                 mkdir(inst.OUTPUT_DIR);
             end                        
         end                
+        
+        function set_subconfig(inst, conf)
+            inst.SUB_CONFIGURATION = conf;
+        end
     end        
 end

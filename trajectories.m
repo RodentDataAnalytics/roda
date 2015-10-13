@@ -29,8 +29,7 @@ classdef trajectories < handle
             inst.items = traj;
             if ~isempty(traj)
                 inst.config_ = traj(1).config;
-            end
-            trajectories.load_cache;            
+            end            
         end
                
         function sz = count(obj)
@@ -41,13 +40,13 @@ classdef trajectories < handle
             obj2 = trajectories([]);    
             if isa(x, 'trajectory')
                 obj2.items = [obj.items, x];
-                if isempty(obj.config_)
-                    obj.config_ = x.config;
+                if isempty(obj2.config_)
+                    obj2.config_ = x.config;
                 end            
             elseif isa(x, 'trajectories')
                 obj2.items = [obj.items, x.items];
-                if isempty(obj.config_)
-                    obj.config_ = x.config_;
+                if isempty(obj2.config_)
+                    obj2.config_ = x.config_;
                 end
             else
                 error('Ops');
@@ -166,48 +165,7 @@ classdef trajectories < handle
                 inst.segmented_map_(inst.partitions > 0) = 1:sum(inst.partitions > 0);
             end
             out = inst.segmented_map_;
-        end
-        
-        function out = remove_outliers(obj, feat, k, n)
-            global g_feature_values_cache;            
-            global g_outliers_cache;
-            
-            % check if we already have the values cached            
-            key = hash_combine(obj.hash_value, hash_value(feat));
-            key = hash_combine(key, k);
-            key = hash_combine(key, n);
-                        
-            if isempty(g_outliers_cache) || ~g_outliers_cache.isKey(key)  
-                % get features
-                feat_val = obj.compute_features(feat);
-                        
-                out = top_outliers(feat_val, k, n, 1);
-                no_idx = setdiff(1:size(feat_val, 1), out);
-                feat_val = feat_val(no_idx, :);
-                
-                if isempty(g_outliers_cache)
-                    g_outliers_cache = containers.Map('KeyType','uint32', 'ValueType','any');
-                end  
-                g_outliers_cache(key) = no_idx;                                
-                
-                % trash old cached data, this changed now
-                obj.hash_ = -1;
-                obj.trajhash_ = [];
-            
-                % also cache new feature values            
-                key2 = hash_combine(obj.hash_value, hash_value(feat));
-                if isempty(g_feature_values_cache)
-                    g_feature_values_cache = containers.Map('KeyType','uint32', 'ValueType','any');
-                end            
-                g_feature_values_cache(key2) = feat_val;
-                trajectories.save_cache;
-            end
-            
-            obj.hash_ = -1;
-            obj.trajhash_ = [];            
-            obj.items = obj.items(g_outliers_cache(key));                                            
-            out = g_outliers_cache(key);            
-        end
+        end                
      
         function featval = compute_features_pca(obj, feat, nfeat)
             featval = obj.compute_features(feat);
@@ -218,23 +176,19 @@ classdef trajectories < handle
         
         function featval = compute_features(obj, feat)
             %COMPUTE_FEATURES Computes feature values for each trajectory/segment. Returns a vector of
-            %   features.
-            
-            % cache feature values            
-            global g_feature_values_cache;
-            
+            %   features.                        
             featval = zeros(obj.count, length(feat));            
             for idx = 1:length(feat)
                 att = obj.config_.FEATURES{feat(idx)};
                 % check if we already have the values for this feature cached
                 key = hash_combine(obj.hash_value, hash_value(att{2}));
             
-                if isempty(g_feature_values_cache)
-                    trajectories.load_cache;
-                end
-                    
-                if isempty(g_feature_values_cache) || ~g_feature_values_cache.isKey(key)                                                    
-                    % compute it we shall
+                fn = [globals.CACHE_DIRECTORY '/' 'features_' num2str(key) '.mat'];
+                if exist(fn, 'file')
+                    load(fn);                    
+                    featval(:, idx) = tmp;
+                else                    
+                    % not cached - compute it we shall
                     fprintf('\nComputing ''%s'' feature values for %d trajectories/segments...', att{2}, obj.count);
                     
                     q = floor(obj.count / 1000);
@@ -254,13 +208,10 @@ classdef trajectories < handle
                         end                       
                     end
                     fprintf('\b\b\b\b\bDone.\n');
-                    if isempty(g_feature_values_cache)
-                        g_feature_values_cache = containers.Map('KeyType','uint32', 'ValueType','any');
-                    end
-                    g_feature_values_cache(key) = featval(:, idx);
-                    trajectories.save_cache;
-                else
-                    featval(:, idx) = g_feature_values_cache(key);
+                    
+                    % save it
+                    tmp = featval(:, idx);
+                    save(fn, 'tmp');                    
                 end                                                
             end                                            
         end
@@ -559,64 +510,5 @@ classdef trajectories < handle
                 map{i, 2} = lbls; 
             end
         end
-    end
-    
-    %%
-    %% STATIC MEMBERS
-    %%
-    methods(Static)
-        function save_cache
-            global g_feature_values_cache;
-            global g_outliers_cache;
-            
-            cache_dir = fullfile(fileparts(mfilename('fullpath')),'/cache');
-            if ~exist(cache_dir, 'dir')
-                mkdir(cache_dir);
-            end
-            
-            if ~isempty(g_feature_values_cache)
-                fn = fullfile(cache_dir,'feature_values.mat');
-                save(fn, 'g_feature_values_cache');
-            end
-            
-            if ~isempty(g_outliers_cache)
-                fn = fullfile(cache_dir, 'outliers.mat');
-                save(fn, 'g_outliers_cache');
-            end            
-        end
-        
-        function load_cache
-            global g_feature_values_cache;
-            global g_outliers_cache;
-            
-            if isempty(g_feature_values_cache)                          
-                fn = [globals.CACHE_DIRECTORY '/feature_values.mat'];                
-                if exist(fn, 'file')
-                    load(fn, 'g_feature_values_cache');
-                end
-            end
-            
-            if isempty(g_outliers_cache)
-                fn = [globals.CACHE_DIRECTORY '/outliers.mat'];                
-                if exist(fn, 'file')
-                    load(fn, 'g_outliers_cache');
-                end
-            end
-        end        
-        
-        function purge_cache
-            fn = [globals.CACHE_DIRECTORY  '/feature_values.mat'];                
-            if exist(fn, 'file')
-                delete(fn);
-            end
-            
-            fn = [globals.CACHE_DIRECTORY '/cache/outliers.mat'];                
-            if exist(fn, 'file')
-                delete(fn);
-            end            
-        end            
-            
-        
-    end
+    end        
 end
-

@@ -1,8 +1,6 @@
 classdef config_mwm < base_config
     % config_mwm Global constants
-    properties(Constant)
-        RESULTS_DIR = 'results/mwm';
-        
+    properties(Constant)        
         TRIAL_TYPES_DESCRIPTION = { ...            
             'Training' ...
         };                    

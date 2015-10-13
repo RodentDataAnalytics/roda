@@ -97,7 +97,7 @@ classdef trajectory < handle
                 len = 0;
                 if traj.offset ~= -1
                     % length taken only into account when offset is used
-                    len = traj.compute_feature(inst.config.FEATURE_LENGTH);
+                    len = traj.compute_feature(traj.config.FEATURE_LENGTH);
                 end
                 traj.hash_ = trajectory.compute_hash(traj.set, traj.session, traj.track, traj.offset, len);
             end

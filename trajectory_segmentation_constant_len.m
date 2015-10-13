@@ -48,6 +48,6 @@ function segments = trajectory_segmentation_constant_len( traj, lseg, ovlp)
             end
         end
 
-        segments = segments.append(trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, seg + 1, seg_off, starti));
+        segments = segments.append(trajectory(traj.config, pts, traj.set, traj.track, traj.group, traj.id, traj.trial, seg + 1, seg_off, starti));
     end            
 end

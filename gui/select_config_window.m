@@ -4,8 +4,9 @@ classdef select_config_window < handle
         selected_config = [];
         % window handle
         window = [];   
-        % other control handles
+        % other control handles        
         config_combo = [];
+        subconfig_combo = [];        
         ok_button = [];
         cancel_button = [];
         datadir_edit = [];
@@ -51,12 +52,12 @@ classdef select_config_window < handle
             inst.window = dialog('name', 'Select configuration', ...
                 'Position', [ (scr_sz(3) - w)/2, (scr_sz(4) - h)/2, w, h] ...
             );
-                    
+                                
             y = h - vb;
             y = y - 20;
             uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Configuration:', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
-            y = y - 30;
+            y = y - 22;
             inst.config_combo = uicontrol('Parent', inst.window, 'Style', 'popupmenu', 'Position', [hb, y, w - 2*hb, 30], ...
                 'String', inst.configs.names, 'Callback', {@inst.config_change_callback});
             if idx <= length(inst.configs.names)
@@ -64,9 +65,15 @@ classdef select_config_window < handle
             end
             
             y = y - 30;
+            uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Sub-configuration:', ...
+                'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
+            y = y - 22;
+            inst.subconfig_combo = uicontrol('Parent', inst.window, 'Style', 'popupmenu', 'Position', [hb, y, w - 2*hb, 30]);
+            
+            y = y - 30;
             uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Data folder:', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
-            y = y - 25;
+            y = y - 16;
             inst.datadir_edit = uicontrol('Parent', inst.window, 'Style', 'edit', 'String', '', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb - 25, 25]);            
             uicontrol('Parent', inst.window, 'Style', 'pushbutton', 'String', '...', ...
@@ -75,7 +82,7 @@ classdef select_config_window < handle
             y = y - 30;
             uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Output folder:', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
-            y = y - 25;
+            y = y - 16;
             inst.outdir_edit = uicontrol('Parent', inst.window, 'Style', 'edit', 'String', '', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb - 25, 25]);            
             uicontrol('Parent', inst.window, 'Style', 'pushbutton', 'String', '...', ...
@@ -97,13 +104,23 @@ classdef select_config_window < handle
             idx = get(inst.config_combo, 'value');
             inst.selected_config = inst.configs.items{idx};
             
+            % update sub-config combo
+            subconfs = inst.selected_config.TAGS_CONFIG;
+            strs = {};
+            for i = 1:length(subconfs)
+                strs = [strs, subconfs{i}(1)];
+            end            
+            set(inst.subconfig_combo, 'String', strs);
+            
             if isKey(inst.saved_selection, inst.selected_config.DESCRIPTION)
-                dirs = inst.saved_selection(inst.selected_config.DESCRIPTION);
-                set(inst.datadir_edit, 'String', dirs{1}); 
-                set(inst.outdir_edit, 'String', dirs{2});
+                props = inst.saved_selection(inst.selected_config.DESCRIPTION);
+                set(inst.datadir_edit, 'String', props{1}); 
+                set(inst.outdir_edit, 'String', props{2});
+                set(inst.subconfig_combo, 'Value', props{3});
             else
                 set(inst.datadir_edit, 'String', ''); 
                 set(inst.outdir_edit, 'String', '');
+                set(inst.subconfig_combo, 'Value', 1);
             end
         end
     
@@ -122,6 +139,7 @@ classdef select_config_window < handle
         
         function ok_callback(inst, source, eventdata)
             idx = get(inst.config_combo, 'value');
+            sub_idx = get(inst.subconfig_combo, 'value');
             
             % validate directories
             data_dir = get(inst.datadir_edit, 'String');
@@ -136,7 +154,7 @@ classdef select_config_window < handle
             end 
             
             % save selection for next time
-            temp = {data_dir, out_dir};
+            temp = {data_dir, out_dir, sub_idx};
             inst.saved_selection(inst.selected_config.DESCRIPTION) = temp;
             
             home_dir = globals.DATA_DIRECTORY;
@@ -145,15 +163,15 @@ classdef select_config_window < handle
             end
             tmp = inst.saved_selection;
             save(inst.persist_fn, 'tmp', 'idx'); 
-            
-            % load data
+                        
+            inst.selected_config.set_subconfig(inst.selected_config.TAGS_CONFIG{sub_idx});                       
             res = cache_load_trajectories(inst.selected_config, data_dir);
             if ~res
                 msgbox('Error loading data');
                 return;
             end
-            
-            % set other parameters
+                                    
+            % set other parameters            
             inst.selected_config.set_output_directory(out_dir);
             inst.result = 1;
             
