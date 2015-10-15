@@ -29,7 +29,7 @@ classdef configurations < handle
             
             config_root = fullfile(fileparts(mfilename('fullpath')),'/config'); 
             addpath(config_root);
-            
+
             % find all available configurations
             files = dir(fullfile(config_root, '*'));               
             for fi = 1:length(files)
@@ -37,17 +37,24 @@ classdef configurations < handle
                     % add directory to the search folder list
                     addpath(fullfile(config_root, files(fi).name));                    
                 end
-            end
+            end            
             
             inst.items = {};
             inst.names = {};
-            for fi = 1:length(files)
-                if ~files(fi).isdir                
-                    [~, fn] = fileparts(fullfile(config_root, files(fi).name));
-                    new_inst = eval([fn '()']);
-                    fprintf('\nFound configuration ''%s''', new_inst.DESCRIPTION);
-                    inst.items = [inst.items, {new_inst}];                    
-                    inst.names = [inst.names, new_inst.DESCRIPTION];
+            
+            if isdeployed
+                % hard coded configurations
+                inst.items = {config_place_avoidance_silver, config_place_avoidance_mem};
+                inst.names = arrayfun( @(idx) inst.items{idx}.DESCRIPTION, 1:length(inst.items), 'UniformOutput', 0);
+            else                            
+                for fi = 1:length(files)
+                    if ~files(fi).isdir                
+                        [~, fn] = fileparts(fullfile(config_root, files(fi).name));
+                        new_inst = eval([fn '()']);
+                        fprintf('\nFound configuration ''%s''', new_inst.DESCRIPTION);
+                        inst.items = [inst.items, {new_inst}];                    
+                        inst.names = [inst.names, new_inst.DESCRIPTION];
+                    end
                 end
             end
         end
