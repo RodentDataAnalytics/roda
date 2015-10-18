@@ -161,10 +161,13 @@ classdef config_place_avoidance < base_config
             % 1 == room coordinate system only, 
             % 2 == arena coordinate system only
             % 3 == whatever, I don't care      
-            [filt_pat, id_day_mask, rev_day, force_trial] = process_options(varargin, 'FilterPattern', '*Room*.dat', ...
-                                                                         'IdDayMask', 'r%dd%d', ...
-                                                                         'ReverseDayId', 0, ...
-                                                                         'Trial', 0);
+            [filt_pat, id_day_mask, rev_day, force_trial, progress] = ...
+                   process_options(varargin, ...
+                                  'FilterPattern', '*Room*.dat', ...
+                                  'IdDayMask', 'r%dd%d', ...
+                                  'ReverseDayId', 0, ...
+                                  'Trial', 0, ...
+                                  'ProgressCallback', []);
 
             % contruct object to hold trajectories
             traj = trajectories([]);
@@ -184,6 +187,12 @@ classdef config_place_avoidance < base_config
             fprintf('Importing %d trajectories...\n', length(files));
 
             for j = 1:length(files)  
+                if ~isempty(progress)
+                    mess = sprintf('Importing trajectory %d of %d', j, length(files));
+                    if progress(mess, j/length(files))
+                        error('Operation cancelled');
+                    end
+                end
                 % read trajectory from fiel
                 pts = config_place_avoidance.read_trajectory(strcat(path, '/', files(j).name));
                 if size(pts, 1) == 0

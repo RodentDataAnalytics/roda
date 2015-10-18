@@ -1,6 +1,6 @@
 function home = home_directory()
     if ispc
-        home = [getenv('HOMEDRIVE') getenv('HOMEPATH')];
+        home = [getenv('APPDATA') '\'];
     else
         home = getenv('HOME');
     end

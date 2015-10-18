@@ -72,17 +72,26 @@ classdef main_window < handle
                 end
             end
             
-            % create main window
-            inst.window = figure('Visible','off', 'name', name, ...
-                'Position', [200, 200, 1280, 800], 'Menubar', 'none', 'Toolbar', 'none', 'resize', 'on');
-
+            %% compute features
+            
             % combine display + clustering features
             if isscalar(inst.features_cluster)
                 inst.features = inst.features_display;
             else
                 inst.features = [inst.features_cluster, setdiff(inst.features_display, inst.features_cluster)];
             end
-            inst.features_values = inst.traj.compute_features(inst.features);  
+            
+            h = waitbar(0, 'Computing features...', 'CreateCancelBtn', 'setappdata(gcbf, ''cancel'', 1);');
+            setappdata(h, 'cancel', 0);            
+            inst.features_values = inst.traj.compute_features(inst.features, ...             
+                'ProgressCallback', ...
+                @(mess, prog) return2nd(waitbar(prog, h, mess), getappdata(h, 'cancel')) ...
+                );
+            delete(h);
+                                    
+            % create main window
+            inst.window = figure('Visible','off', 'name', name, ...
+                'Position', [200, 200, 1280, 800], 'Menubar', 'none', 'Toolbar', 'none', 'resize', 'on');
             
             % create the tabs
             vbox = uiextras.VBox( 'Parent', inst.window, 'Padding', 5);

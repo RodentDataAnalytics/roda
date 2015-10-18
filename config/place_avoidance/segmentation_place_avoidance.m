@@ -1,4 +1,4 @@
-function segments = segmentation_place_avoidance(traj, section, dt_min)
+function segments = segmentation_place_avoidance(traj, section, dt_min, varargin)
     segments = trajectories([]);
     switch section
         case config_place_avoidance.SECTION_T1

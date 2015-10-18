@@ -10,13 +10,32 @@ addpath(fullfile(fileparts(mfilename('fullpath')),'/config'));
 addpath(fullfile(fileparts(mfilename('fullpath')),'/utility'));
 addpath(fullfile(fileparts(mfilename('fullpath')),'/gui'));
 
-% select configuration
-sel_cfg = select_config_window;
-if ~sel_cfg.show
-    disp('Aborted.');
-    return;
+% ask the user if he wants to load or create a configuration
+resp = questdlg('Would you like to create a new configuration or load an existing one?', ...
+    'Configuration', 'Create new', 'Load existing', 'Cancel', 'Create new');
+
+switch resp
+    case 'Cancel'
+        return;
+    case 'Load existing'        
+        fn = uigetfile('*.cfg', 'Select configuration');
+        if ~isempty(fn)
+            return;
+        end
+        % load it
+        cfg = base_config.load_from_file(fn);        
+    case 'Create new'        
+        % create new new configuration
+        new_cfg_dlg = select_config_window;
+        if ~new_cfg_dlg.show
+            disp('Aborted.');
+            return;
+        end
+        cfg = new_cfg_dlg.selected_config;
+        % save it already
+        cfg.save_to_file();        
 end
 
 % show main window
-main = main_window(sel_cfg.selected_config);
+main = main_window(cfg);
 main.show();

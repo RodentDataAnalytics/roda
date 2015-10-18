@@ -97,6 +97,7 @@ classdef base_config < handle
         OUTPUT_DIR = [];
         TRAJECTORIES = [];
         SUB_CONFIGURATION = [];
+        USER_DESCRIPTION = '';
     end
     
     methods
@@ -126,5 +127,27 @@ classdef base_config < handle
         function set_subconfig(inst, conf)
             inst.SUB_CONFIGURATION = conf;
         end
-    end        
+        
+        function set_description(inst, desc)
+            inst.USER_DESCRIPTION = desc;
+        end
+            
+        function save_to_file(inst)
+            fn = [inst.OUTPUT_DIR '/' inst.USER_DESCRIPTION '.cfg'];
+            SAVED_CONFIGURATION = inst;
+            save(fn, 'SAVED_CONFIGURATION');
+            clear('SAVED_CONFIGURATION');
+        end
+    end
+    
+    methods(Static)
+        function inst = load_from_file(fn)
+            load(fn);
+            if ~exist('SAVED_CONFIGURATION')
+                error('Invalid file');
+            end
+            inst = SAVED_CONFIGURATION;
+            clear('SAVED_CONFIGURATION');
+        end
+    end
 end

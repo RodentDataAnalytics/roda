@@ -88,13 +88,16 @@ classdef trajectories < handle
         %   of length LEN and overlap OVL (given in %)   
         %   returns an array of trajectory segments
             fprintf('Segmenting trajectories... ');
+            [progress] = process_options(varargin, ...
+                               'ProgressCallback', []);
+
             % construct new object
             segments = trajectories([]);
             partition = zeros(1, obj.count);
             cum_partitions = zeros(1, obj.count);
             p = 1;
             off = 0;
-            for i = 1:obj.count
+            for i = 1:obj.count                
                 newseg = obj.items(i).partition(idx, varargin{:});
                 
                 if newseg.count >= nmin                    
@@ -106,10 +109,16 @@ classdef trajectories < handle
                     cum_partitions(i) = off;
                 end
                 
-                if segments.count > p*1000
+                if segments.count > p*500
                     fprintf('%d ', segments.count);
                     p = p + 1;
-                end
+                    if ~isempty(progress)
+                        mess = sprintf('Segmenting trajectories [total segments: %d]', segments.count);
+                        if progress(mess, i/obj.count)
+                            error('Operation cancelled');
+                        end
+                    end
+                end  
             end
             segments.partitions_ = partition;
             segments.parent = obj;
@@ -174,9 +183,12 @@ classdef trajectories < handle
             featval = featval*coeff(:, 1:nfeat);                
         end
         
-        function featval = compute_features(obj, feat)
+        function featval = compute_features(obj, feat, varargin)
             %COMPUTE_FEATURES Computes feature values for each trajectory/segment. Returns a vector of
             %   features.                        
+            [progress] = process_options(varargin, ...
+                               'ProgressCallback', []);
+                           
             featval = zeros(obj.count, length(feat));            
             for idx = 1:length(feat)
                 att = obj.config_.FEATURES{feat(idx)};
@@ -192,7 +204,7 @@ classdef trajectories < handle
                     fprintf('\nComputing ''%s'' feature values for %d trajectories/segments...', att{2}, obj.count);
                     
                     q = floor(obj.count / 1000);
-                    fprintf('0.0% '); 
+                    fprintf('0.0% ');                                        
                 
                     for i = 1:obj.count
                         % compute and append feature values for each segment
@@ -205,6 +217,13 @@ classdef trajectories < handle
                             else
                                 fprintf('\b\b\b\b\b%04.1f%%', val);
                             end    
+                            
+                            if ~isempty(progress)
+                                mess = sprintf('[%d/%d] Computing ''%s'' feature values', idx, length(feat), att{2});
+                                if progress(mess, i/obj.count)
+                                    error('Operation cancelled');
+                                end                                
+                            end
                         end                       
                     end
                     fprintf('\b\b\b\b\bDone.\n');

@@ -28,14 +28,16 @@ classdef config_place_avoidance_silver < config_place_avoidance
         end
         
         % Imports trajectories from Noldus data file's
-        function res = load_data(inst, root)            
+        function res = load_data(inst, root, varargin)            
             % "Silver" set
             % folder = '/home/tiago/place_avoidance/data3/';
             % control
-            traj = config_place_avoidance.load_trajectories(inst, root, 1, 'FilterPattern', 'ho*Room*.dat', 'IdDayMask', 'hod%dr%d', 'ReverseDayId', 1); 
+            traj = config_place_avoidance.load_trajectories(inst, root, 1, ...
+                'FilterPattern', 'ho*Room*.dat', 'IdDayMask', 'hod%dr%d', 'ReverseDayId', 1, varargin{:}); 
             
             % silver
-            traj = traj.append(config_place_avoidance.load_trajectories(inst, root, 2, 'FilterPattern', 'nd*Room*.dat', 'IdDayMask', 'nd%dr%d', 'ReverseDayId', 1));           
+            traj = traj.append(config_place_avoidance.load_trajectories(inst, root, 2, ...
+                'FilterPattern', 'nd*Room*.dat', 'IdDayMask', 'nd%dr%d', 'ReverseDayId', 1, varargin{:}));           
             
             inst.TRAJECTORIES = traj;
             res = 1;

@@ -43,7 +43,11 @@ classdef config_place_avoidance_mem < config_place_avoidance
                
        
         % Imports trajectories from Noldus data file's
-        function res = load_data(inst, root, merge)            
+        function load_data(inst, root, varargin)   
+            [merge, progress] = process_options(varargin, ...
+              'Merge', 0, ...
+              'ProgressCallbak', []);
+
             traj = trajectories([]);
             sub_folders = {'control', 'MK_high', 'MK_medium', 'MK_low', 'mem_high', 'mem_medium', 'mem_low' };
             groups = [ config_place_avoidance_mem.GROUP_CONTROL, ...
@@ -68,13 +72,19 @@ classdef config_place_avoidance_mem < config_place_avoidance
                 for f = 1:length(sub_folders)
                     % load training part (divided in 3 x 5 min trials)
                     pat = sprintf('*d%dtr*Room*.dat', day);     
-                    new_traj = config_place_avoidance.load_trajectories(inst, [root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day); 
-
+                    new_traj = config_place_avoidance.load_trajectories(inst, [root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day, varargin{:}); 
+                    
                     % load testing part (5 min)
                     pat = sprintf('*d%dts*Room*.dat', day);     
-                    new_traj_test = config_place_avoidance.load_trajectories(inst, [root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day);
-
-                    if nargin > 0 && merge == 1
+                    new_traj_test = config_place_avoidance.load_trajectories(inst, [root, sub_folders{f}], groups(f), 'FilterPattern', pat, 'IdDayMask', 'r%dd%d', 'Trial', real_day, varargin{:});
+                    
+                    if ~isempty(progress)
+                        if progress('Processing trajectories', -1)
+                            error('Operation cancelled');
+                        end
+                    end                                        
+                    
+                    if nargin > 0 && merge == 1                        
                         % combine training + testing part
                         for ii = 1:new_traj.count
                             % find matching testing
@@ -156,8 +166,7 @@ classdef config_place_avoidance_mem < config_place_avoidance
                     end                    
                 end
             end
-            inst.TRAJECTORIES = traj;
-            res = 1;       
+            inst.TRAJECTORIES = traj;            
         end
     end
 end

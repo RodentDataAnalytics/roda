@@ -4,7 +4,8 @@ classdef select_config_window < handle
         selected_config = [];
         % window handle
         window = [];   
-        % other control handles        
+        % other control handles    
+        description_edit = [];
         config_combo = [];
         subconfig_combo = [];        
         ok_button = [];
@@ -43,19 +44,26 @@ classdef select_config_window < handle
             end
        
             w = 400;
-            h = 300;
+            h = 350;
             hb = 20;
             vb = 20;            
             
             scr_sz = get(0, 'ScreenSize');
              
-            inst.window = dialog('name', 'Select configuration', ...
+            inst.window = dialog('name', 'Create new configuration', ...
                 'Position', [ (scr_sz(3) - w)/2, (scr_sz(4) - h)/2, w, h] ...
             );
                                 
             y = h - vb;
-            y = y - 20;
-            uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Configuration:', ...
+            y = y - 20;            
+            inst.description_edit = uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Name:', ...
+                'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
+            y = y - 16;
+            inst.description_edit = uicontrol('Parent', inst.window, 'Style', 'edit', 'String', '', ...
+                'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);                        
+            
+            y = y - 30;
+            uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Base configuration:', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
             y = y - 22;
             inst.config_combo = uicontrol('Parent', inst.window, 'Style', 'popupmenu', 'Position', [hb, y, w - 2*hb, 30], ...
@@ -141,6 +149,13 @@ classdef select_config_window < handle
             idx = get(inst.config_combo, 'value');
             sub_idx = get(inst.subconfig_combo, 'value');
             
+            % need a description
+            desc = get(inst.description_edit, 'String');
+            if isempty(desc)
+                msgbox('Please provide a description.');
+                return;
+            end
+            
             % validate directories
             data_dir = get(inst.datadir_edit, 'String');
             out_dir = get(inst.outdir_edit, 'String');
@@ -164,12 +179,17 @@ classdef select_config_window < handle
             tmp = inst.saved_selection;
             save(inst.persist_fn, 'tmp', 'idx'); 
                         
+            inst.selected_config.set_description(desc);
             inst.selected_config.set_subconfig(inst.selected_config.TAGS_CONFIG{sub_idx});                       
-            res = cache_load_trajectories(inst.selected_config, data_dir);
-            if ~res
-                msgbox('Error loading data');
-                return;
-            end
+            
+            % load the data
+            h = waitbar(0, 'Importing data...', 'CreateCancelBtn', 'setappdata(gcbf, ''cancel'', 1);');
+            setappdata(h, 'cancel', 0);            
+            cache_load_trajectories(inst.selected_config, data_dir, ...
+                'ProgressCallback', ...
+                @(mess, prog) return2nd(waitbar(prog, h, mess), getappdata(h, 'cancel')) ...
+                );
+            delete(h);
                                     
             % set other parameters            
             inst.selected_config.set_output_directory(out_dir);
