@@ -109,10 +109,10 @@ classdef label_trajectories_view < handle
                 box = uiextras.HBox('Parent', layout_box);
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'NX:');
                 inst.xviews_combo = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', {'1', '2', '3', '4', '5', '6'}, 'Callback', {@inst.layout_change_callback});
-                set(inst.xviews_combo, 'value', 2);
+                set(inst.xviews_combo, 'value', inst.parent.config.property('BROWSE_SEGMENTS_NX', 2));
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'NY:');
                 inst.yviews_combo = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', {'1', '2', '3', '4', '5', '6'}, 'Callback', {@inst.layout_change_callback});      
-                set(inst.yviews_combo, 'value', 2);
+                set(inst.yviews_combo, 'value', inst.parent.config.property('BROWSE_SEGMENTS_NY', 2));
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'Tol:');
                 tol_str = arrayfun( @(x) num2str(x), 1:25, 'UniformOutput', 0);
                 simplify_tol_handle = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', tol_str, 'Callback', {@inst.layout_change_callback});
@@ -706,6 +706,11 @@ classdef label_trajectories_view < handle
         end    
 
         function layout_change_callback(inst, source, eventdata)
+            % save current properties
+            inst.parent.config.set_property('BROWSE_SEGMENTS_NX', get(inst.xviews_combo, 'value'));
+            inst.parent.config.set_property('BROWSE_SEGMENTS_NY', get(inst.yviews_combo, 'value'));
+            inst.parent.config.save_to_file;
+            
             inst.create_views;
             inst.show_trajectories;
         end

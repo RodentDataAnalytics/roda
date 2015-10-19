@@ -100,6 +100,10 @@ classdef base_config < handle
         USER_DESCRIPTION = '';
     end
     
+    properties(GetAccess = 'private', SetAccess = 'private')
+        properties_ = containers.Map('KeyType', 'char', 'ValueType', 'any');
+    end
+    
     methods
         function inst = base_config(desc, extr_tags, extr_data_repr, extr_features, extr_seg)
             inst.DESCRIPTION = desc;          
@@ -133,10 +137,30 @@ classdef base_config < handle
         end
             
         function save_to_file(inst)
-            fn = [inst.OUTPUT_DIR '/' inst.USER_DESCRIPTION '.cfg'];
+            fn = [inst.OUTPUT_DIR '/' inst.USER_DESCRIPTION '.mat'];
             SAVED_CONFIGURATION = inst;
             save(fn, 'SAVED_CONFIGURATION');
             clear('SAVED_CONFIGURATION');
+        end
+        
+        function set_property(inst, name, val)
+            inst.properties_(name) = val;            
+        end
+        
+        function val = property(inst, name, def)
+            if inst.has_property(name)
+                val = inst.properties_(name);
+            else
+                if nargin > 2
+                    val = def;
+                else
+                    val = [];
+                end
+            end
+        end
+        
+        function ret = has_property(inst, name)
+            ret = isKey(inst.properties_, name);
         end
     end
     

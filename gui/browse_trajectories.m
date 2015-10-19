@@ -55,11 +55,11 @@ function browse_trajectories(labels_fn, traj, varargin)
     set(ctrl_box, 'Sizes', [200 75 -1 75 200 350]);
     % trajectories navigation
     uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<-', 'Callback', {@previous_callback});
-    uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->', 'Callback',{@next_callback});    
-    uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<-', 'Callback',{@previous2_callback});
-    uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>', 'Callback',{@next2_callback});
-    uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<<-', 'Callback',{@previous3_callback});
-    uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>>', 'Callback',{@next3_callback});
+    uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->', 'Callback', {@next_callback});    
+    uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<-', 'Callback', {@previous2_callback});
+    uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>', 'Callback', {@next2_callback});
+    uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<<-', 'Callback', {@previous3_callback});
+    uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>>', 'Callback', {@next3_callback});
     
     % status text (middle)
     status_handle = uicontrol('Parent', stat_box, 'Style', 'text', 'String', '');

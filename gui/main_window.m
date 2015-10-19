@@ -90,7 +90,7 @@ classdef main_window < handle
             delete(h);
                                     
             % create main window
-            inst.window = figure('Visible','off', 'name', name, ...
+            inst.window = figure('Visible','off', 'name', inst.config.USER_DESCRIPTION, ...
                 'Position', [200, 200, 1280, 800], 'Menubar', 'none', 'Toolbar', 'none', 'resize', 'on');
             
             % create the tabs

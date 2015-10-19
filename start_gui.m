@@ -18,12 +18,12 @@ switch resp
     case 'Cancel'
         return;
     case 'Load existing'        
-        fn = uigetfile('*.cfg', 'Select configuration');
-        if ~isempty(fn)
+        [fn, pn] = uigetfile('*.mat', 'Select configuration');
+        if isempty(fn)
             return;
         end
         % load it
-        cfg = base_config.load_from_file(fn);        
+        cfg = base_config.load_from_file([pn fn]);        
     case 'Create new'        
         % create new new configuration
         new_cfg_dlg = select_config_window;
