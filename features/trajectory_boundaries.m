@@ -1,16 +1,16 @@
 function [ x, y, a, b, inc ] = trajectory_boundaries( traj, varargin )
-    x = traj.config.CENTRE_X;
-    y = traj.config.CENTRE_Y;
-    a = 0;
+    x = 0;
+    y = 0;
+    a = 0;    
     b = 0;
     inc = 0;
      
-    [repr] = process_options(varargin, 'DataRepresentation', 1);
+    repr = process_options(varargin, 'DataRepresentation', base_config.DATA_REPRESENTATION_COORD);
         
-    if repr > 1
+    if repr.hash_value ~= base_config.DATA_REPRESENTATION_COORD.hash_value
         % we have a special data representation - don't look for
         % pre-computed values
-        pts = traj.data_representation(repr);                    
+        pts = repr.apply(traj);                    
         if size(pts, 1) > 3
             [A, cntr] = min_enclosing_ellipsoid(pts(:, 2:3)', 1e-2);
             x = cntr(1);
@@ -20,13 +20,19 @@ function [ x, y, a, b, inc ] = trajectory_boundaries( traj, varargin )
             end
         end
     else
+        centre_x = base_config.FEATURE_BOUNDARY_CENTRE_X;
+        centre_y = base_config.FEATURE_BOUNDARY_CENTRE_Y;
+        r_min = base_config.FEATURE_BOUNDARY_RADIUS_MIN;
+        r_max = base_config.FEATURE_BOUNDARY_RADIUS_MAX;
+        inc = base_config.FEATURE_BOUNDARY_INCLINATION;
+        
         % see we have cached values
-        if traj.has_feature_value(traj.config.FEATURE_BOUNDARY_CENTRE_X)
-            x = traj.compute_feature(traj.config.FEATURE_BOUNDARY_CENTRE_X);
-            y = traj.compute_feature(traj.config.FEATURE_BOUNDARY_CENTRE_Y);
-            a = traj.compute_feature(traj.config.FEATURE_BOUNDARY_RADIUS_MIN);
-            b = traj.compute_feature(traj.config.FEATURE_BOUNDARY_RADIUS_MAX);
-            inc = traj.compute_feature(traj.config.FEATURE_BOUNDARY_INCLINATION);
+        if traj.has_feature_value(centre_x)
+            x = centre_x.compute(traj);
+            y = centre_y.compute(traj);
+            a = r_min.compute(traj);
+            b = r_max.compute(traj);
+            inc = inc.compute(traj);
         else
             if size(traj.points, 1) > 3
                 [A, cntr] = min_enclosing_ellipsoid(traj.points(:, 2:3)', 1e-1);
@@ -36,11 +42,11 @@ function [ x, y, a, b, inc ] = trajectory_boundaries( traj, varargin )
                     [a, b, inc] = ellipse_parameters(A);
                 end
                 % cache values
-                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_CENTRE_X, x);
-                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_CENTRE_Y, y);
-                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_RADIUS_MIN, a);
-                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_RADIUS_MAX, b);
-                traj.cache_feature_value(traj.config.FEATURE_BOUNDARY_INCLINATION, inc);                
+                traj.cache_feature_value(centre_x, x);
+                traj.cache_feature_value(centre_y, y);
+                traj.cache_feature_value(r_min, a);
+                traj.cache_feature_value(r_max, b);
+                traj.cache_feature_value(inc, inc);                
             end
         end
     end                    

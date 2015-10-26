@@ -1,7 +1,7 @@
 function len = trajectory_length( traj, varargin )
 %TRAJECTORY_LENGTH Computes length of a trajectory
-    [repr] = process_options(varargin, 'DataRepresentation', 1);
-    pts = traj.data_representation(repr);
+    [repr] = process_options(varargin, 'DataRepresentation', 1);        
+    pts = repr.apply(traj);
     len = 0;    
     for i = 2:size(pts, 1)
         % compute the length in cm and seconds

@@ -22,8 +22,8 @@ classdef results_full_trajectories < handle
             inst.parent = par;
             inst.window = uiextras.VBox('Parent', par_wnd);
             
-            for i = 1:length(inst.main_window.config.DATA_REPRESENTATION)
-                par = inst.main_window.config.DATA_REPRESENTATION{i};
+            for i = 1:length(inst.main_window.config.DATA_REPRESENTATIONS)
+                par = inst.main_window.config.DATA_REPRESENTATIONSS{i};
                 switch par{2}
                     case base_config.DATA_TYPE_SCALAR_FIELD
                         inst.measures_list = [inst.measures_list, ...
@@ -114,10 +114,7 @@ classdef results_full_trajectories < handle
                     set(inst.parent.window, 'currentaxes', inst.axis(i));
                     meas_param = inst.measures_list{sel - 1};
                     f = meas_param{3};
-                    dr = meas_param{2};
-                    dr_param = inst.main_window.config.DATA_REPRESENTATION{meas_param{2}};
-                    % data type
-                    dt = dr_param{2}; 
+                    data_repr= inst.main_window.config.DATA_REPRESENTATIONS(meas_param{2});
                     % plot something
                     data = {};
                     for g = 1:inst.main_window.config.GROUPS
@@ -126,11 +123,11 @@ classdef results_full_trajectories < handle
                             if grp == 1 || (grp == 2 && g == tg) || (grp - 2) == tg
                                 % see if trial matches                                                               
                                 if inst.parent.traj.parent.items(t).trial >= ti && inst.parent.traj.parent.items(t).trial <= tf
-                                    tmp = inst.parent.traj.parent.items(t).data_representation(dr);
+                                    tmp = data_repr.apply(inst.parent.traj.parent.items(t));
                                     % see if we have continuous values or
                                     % one squashing function                                     
                                     if isempty(f)                                        
-                                        switch dt
+                                        switch data_repr.data_type
                                             case base_config.DATA_TYPE_SCALAR_FIELD                                                                                                
                                                 data = [data, tmp(:, [1, 4])];
                                             case base_config.DATA_TYPE_EVENT

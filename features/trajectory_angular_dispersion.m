@@ -1,7 +1,8 @@
-function ret = trajectory_angular_dispersion( traj, varargin )
+function ret = trajectory_angular_dispersion( traj, x0, y0, varargin )
     %TRAJECTORY_ANGLE Compute mean angle of the trajectory    
-    [repr, x0, y0] = process_options(varargin, 'DataRepresentation', 1, 'X0', traj.config.CENTRE_X, 'Y0', traj.config.CENTRE_Y);
-    pts = traj.data_representation(repr);
+    repr = process_options(varargin, 'DataRepresentation', base_config.DATA_REPRESENTATION_COORD);
+    
+    pts = repr.apply(traj);
 
     d = [pts(:, 2) - x0, pts(:, 3) - y0];
     % normalize it

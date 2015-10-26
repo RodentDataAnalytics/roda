@@ -11,7 +11,7 @@ function results_control_stress_speed_latency
     
     cache_animals;
 
-    trajectories_latency = arrayfun( @(t) t.compute_feature(g_config.FEATURE_LATENCY), g_trajectories.items);      
+    trajectories_latency = arrayfun( @(t) base_config.FEATURE_LATENCY.compute(t), g_trajectories.items);      
     
     cache_animals;
      vars = [trajectories_latency; g_trajectories_speed; g_trajectories_length/100];

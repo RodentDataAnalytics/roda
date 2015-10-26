@@ -1,6 +1,7 @@
-function val = trajectory_time_within_radius( traj, r, varargin )
-    [repr, x0, y0] = process_options(varargin, 'DataRepresentation', 1, 'X0', traj.config.CENTRE_X, 'Y0', traj.config.CENTRE_Y);
-    pts = traj.data_representation(repr);
+function val = trajectory_time_within_radius( traj, x0, y0, r, varargin )
+    repr = process_options(varargin, 'DataRepresentation', base_config.DATA_REPRESENTATION_COORD);
+    
+    pts = repr.apply(traj);
     ltot = 0;
     lins = 0;
     for i = 2:size(pts, 1)

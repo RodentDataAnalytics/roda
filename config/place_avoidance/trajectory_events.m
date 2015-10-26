@@ -1,6 +1,6 @@
 function vals = trajectory_events( traj, state, varargin )    
-    [repr, col] = process_options(varargin, 'DataRepresentation', 1, 'StateColumn', 4);
-    pts = traj.data_representation(repr);
+    [repr, col] = process_options(varargin, 'DataRepresentation', base_config.DATA_REPRESENTATION_COORD, 'StateColumn', 4);
+    pts = repr.apply(traj);
     
     vals = zeros(size(pts, 1), 4);
     vals(:, 1:3) = pts(:, 1:3);

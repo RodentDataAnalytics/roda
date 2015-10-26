@@ -2,8 +2,9 @@ classdef configurations < handle
     %CONFIGURATIONS Loads available experimental configurations    
     
     properties(GetAccess = 'public', SetAccess = 'protected')
-        items = {};
-        names = {};
+        descriptions = {};
+        class_names = {};
+        sub_configurations = {};
     end
     
     methods(Static)
@@ -14,6 +15,21 @@ classdef configurations < handle
                 single_inst = configurations;
             end
             inst = single_inst;
+        end
+    end
+   
+    methods
+        function config = get_configuration(inst, idx, sub_idx, desc)
+            %f = [inst.class_names{idx} '(''' desc ''', ' num2str(sub_idx) ')']
+            %config = eval([inst.class_names{idx} '(''' desc ''', ' num2str(sub_idx) ')']);
+            % HACK TODO: matlab crashing with the code above, need to
+            % investigate
+            switch idx
+                case 1
+                    config = config_place_avoidance_silver(desc, sub_idx);
+                otherwise
+                    error('Need to update the list of configurations');
+            end
         end
     end
     
@@ -39,24 +55,21 @@ classdef configurations < handle
                 end
             end            
             
-            inst.items = {};
-            inst.names = {};
+            inst.class_names = {};
+            inst.descriptions = {};
+            inst.sub_configurations = {};
             
-            if isdeployed
-                % hard coded configurations
-                inst.items = {config_place_avoidance_silver, config_place_avoidance_mem};
-                inst.names = arrayfun( @(idx) inst.items{idx}.DESCRIPTION, 1:length(inst.items), 'UniformOutput', 0);
-            else                            
-                for fi = 1:length(files)
-                    if ~files(fi).isdir                
-                        [~, fn] = fileparts(fullfile(config_root, files(fi).name));
-                        new_inst = eval([fn '()']);
-                        fprintf('\nFound configuration ''%s''', new_inst.DESCRIPTION);
-                        inst.items = [inst.items, {new_inst}];                    
-                        inst.names = [inst.names, new_inst.DESCRIPTION];
-                    end
-                end
-            end
+            % hard coded configurations
+            templates = { ...
+                'Place avoidance task (silver)', 'config_place_avoidance_silver', ...
+                    arrayfun( @(idx) config_place_avoidance_silver.CONFIGURATIONS{idx}{1}, ...
+                            1:length(config_place_avoidance_silver.CONFIGURATIONS), 'UniformOutput', 0)
+            };
+                %, 'Place avoidance task (memantine)', config_place_avoidance_mem ...
+                     
+            inst.descriptions = arrayfun( @(idx) templates{idx}, 1:3:length(templates), 'UniformOutput', 0);                                       
+            inst.class_names = arrayfun( @(idx) templates{idx}, 2:3:length(templates), 'UniformOutput', 0);                                       
+            inst.sub_configurations = arrayfun( @(idx) templates{idx}, 3:3:length(templates), 'UniformOutput', 0);                                       
         end
     end    
 end

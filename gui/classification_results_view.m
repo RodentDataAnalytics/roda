@@ -137,7 +137,7 @@ classdef classification_results_view < handle
             strings = {'** all **'};            
             for i = 1:inst.parent.clustering_results.nclusters
                 if inst.parent.clustering_results.cluster_class_map(i) == 0
-                    lbl = inst.parent.config.UNDEFINED_TAG_ABBREVIATION;
+                    lbl = inst.parent.config.UNDEFINED_TAG.abbreviation;
                 else
                     lbl = inst.parent.clustering_results.classes(inst.parent.clustering_results.cluster_class_map(i)).abbreviation;
                 end

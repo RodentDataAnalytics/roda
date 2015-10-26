@@ -12,6 +12,8 @@ classdef main_window < handle
         % GUI elements
         window = [];        
         tab_panel = [];
+        % menus
+        main_menu = [];        
         % sub-tabs
         labels_view = [];
         clustering_view = [];
@@ -93,6 +95,10 @@ classdef main_window < handle
             inst.window = figure('Visible','off', 'name', inst.config.USER_DESCRIPTION, ...
                 'Position', [200, 200, 1280, 800], 'Menubar', 'none', 'Toolbar', 'none', 'resize', 'on');
             
+            % create menus
+            inst.main_menu = uimenu(inst.window, 'Label', 'Edit');
+            uimenu(inst.main_menu, 'Label', 'Tags', 'Callback', @inst.menu_tags_callback);
+            
             % create the tabs
             vbox = uiextras.VBox( 'Parent', inst.window, 'Padding', 5);
             inst.tab_panel = uiextras.TabPanel( 'Parent', vbox, 'Padding', 5, 'Callback', @inst.update_tab_callback, 'TabSize', 150);
@@ -109,7 +115,7 @@ classdef main_window < handle
         
         function show(inst)
             set(inst.window, 'Visible', 'on');  
-        end
+        end         
         
         function update_tab_callback(inst, source, eventdata)
             inst.clear;
@@ -118,7 +124,7 @@ classdef main_window < handle
         
         function update_callback(inst, source, eventdata)
             inst.update_child(inst.tab_panel.SelectedChild);
-        end
+        end        
         
         function update(inst, tabnr)
             switch tabnr
@@ -173,6 +179,12 @@ classdef main_window < handle
                         inst.results_view.clear;
                     end
             end
-        end            
+        end    
+        
+        function menu_tags_callback(inst, source, eventdata)
+            wnd = edit_tags_window;
+            wnd.show(inst.config);            
+            inst.config.TAGS
+        end       
     end        
 end

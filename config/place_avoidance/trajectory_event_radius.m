@@ -1,13 +1,13 @@
-function ret = trajectory_event_radius( traj, state, varargin )    
-    [repr, col] = process_options(varargin, 'DataRepresentation', 1, ...
+function ret = trajectory_event_radius( traj, x0, y0, rarena, state, varargin )    
+    [repr, col] = process_options(varargin, 'DataRepresentation', base_config.DATA_REPRESENTATION_COORD, ...
                                             'StateColumn', 4);                                                    
                                                 
-    pts = traj.data_representation(repr);    
+    pts = repr.apply(traj);    
     r = [];
     
     for i = 1:size(pts, 1)                
         if pts(i, col) == state
-            r = [r, sqrt( (pts(i, 2) - traj.config.CENTRE_X)^2 + (pts(i, 3) - traj.config.CENTRE_Y)^2 ) / traj.config.ARENA_R];            
+            r = [r, sqrt( (pts(i, 2) - x0)^2 + (pts(i, 3) - y0)^2 ) / rarena];            
         end        
     end   
     

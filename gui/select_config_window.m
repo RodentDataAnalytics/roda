@@ -25,8 +25,6 @@ classdef select_config_window < handle
     
     methods
         function inst = select_config_window()
-            addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout'));
-            addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout/Patch'));          
             inst.configs = configurations.instance;            
             inst.persist_fn = [globals.DATA_DIRECTORY '/' 'conf_sel.mat'];                        
         end
@@ -67,8 +65,8 @@ classdef select_config_window < handle
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
             y = y - 22;
             inst.config_combo = uicontrol('Parent', inst.window, 'Style', 'popupmenu', 'Position', [hb, y, w - 2*hb, 30], ...
-                'String', inst.configs.names, 'Callback', {@inst.config_change_callback});
-            if idx <= length(inst.configs.names)
+                'String', inst.configs.descriptions, 'Callback', {@inst.config_change_callback});
+            if idx <= length(inst.configs.descriptions)
                 set(inst.config_combo, 'Value', idx);
             end
             
@@ -110,18 +108,13 @@ classdef select_config_window < handle
         function config_change_callback(inst, source, eventdata)
             % see if we already have pre-selected directories
             idx = get(inst.config_combo, 'value');
-            inst.selected_config = inst.configs.items{idx};
             
             % update sub-config combo
-            subconfs = inst.selected_config.TAGS_CONFIG;
-            strs = {};
-            for i = 1:length(subconfs)
-                strs = [strs, subconfs{i}(1)];
-            end            
-            set(inst.subconfig_combo, 'String', strs);
+            subconfs = inst.configs.sub_configurations{idx};
+            set(inst.subconfig_combo, 'String', subconfs);
             
-            if isKey(inst.saved_selection, inst.selected_config.DESCRIPTION)
-                props = inst.saved_selection(inst.selected_config.DESCRIPTION);
+            if isKey(inst.saved_selection, inst.configs.descriptions{idx})
+                props = inst.saved_selection(inst.configs.descriptions{idx});
                 set(inst.datadir_edit, 'String', props{1}); 
                 set(inst.outdir_edit, 'String', props{2});
                 set(inst.subconfig_combo, 'Value', props{3});
@@ -170,18 +163,14 @@ classdef select_config_window < handle
             
             % save selection for next time
             temp = {data_dir, out_dir, sub_idx};
-            inst.saved_selection(inst.selected_config.DESCRIPTION) = temp;
+            inst.saved_selection(inst.configs.descriptions{idx}) = temp;
             
             home_dir = globals.DATA_DIRECTORY;
-            if ~exist(home_dir, 'dir')                
-                mkdir(home_dir)
-            end
             tmp = inst.saved_selection;
             save(inst.persist_fn, 'tmp', 'idx'); 
                         
-            inst.selected_config.set_description(desc);
-            inst.selected_config.set_subconfig(inst.selected_config.TAGS_CONFIG{sub_idx});                       
-            
+            inst.selected_config = inst.configs.get_configuration(idx, sub_idx, desc);
+                        
             % load the data
             h = waitbar(0, 'Importing data...', 'CreateCancelBtn', 'setappdata(gcbf, ''cancel'', 1);');
             setappdata(h, 'cancel', 0);            

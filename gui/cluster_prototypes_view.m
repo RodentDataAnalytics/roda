@@ -91,7 +91,8 @@ classdef cluster_prototypes_view < handle
         end       
         
         function update_plots(inst, source, event_data) 
-            if inst.main_window.config.NUMBER_FEATURES_PCA > 0
+            npca = inst.main_window.config.property('NUMBER_FEATURES_PCA', 0);
+            if npca > 0
                 feat_val = inst.main_window.traj.compute_features_pca(inst.main_window.features_cluster, inst.parent.num_features);
             else
                 feat_val = inst.main_window.traj.compute_features(inst.main_window.features_cluster);           

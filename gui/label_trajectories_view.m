@@ -120,8 +120,8 @@ classdef label_trajectories_view < handle
 
                 % build a list with all the possible data representations
                 strs = {};
-                for i = 1:length(inst.parent.config.DATA_REPRESENTATION)
-                    tmp = inst.parent.config.DATA_REPRESENTATION{i};
+                for i = 1:length(inst.parent.config.DATA_REPRESENTATIONS)
+                    tmp = inst.parent.config.DATA_REPRESENTATIONS{i};
                     strs = [strs, tmp{1}];
                 end
                 if ~isempty(inst.parent.traj)
@@ -155,8 +155,8 @@ classdef label_trajectories_view < handle
                 set(box, 'Sizes', [50, -1, 50, -1]);
 
                 % normalization values for speed and other scalar values
-                inst.data_repr_norm = zeros(1, length(inst.parent.config.DATA_REPRESENTATION));
-                inst.data_repr_off  = zeros(1, length(inst.parent.config.DATA_REPRESENTATION));
+                inst.data_repr_norm = zeros(1, length(inst.parent.config.DATA_REPRESENTATIONS));
+                inst.data_repr_off  = zeros(1, length(inst.parent.config.DATA_REPRESENTATIONS));
 
                 inst.create_views;
                 inst.cur = 1; %current index                        
@@ -270,7 +270,7 @@ classdef label_trajectories_view < handle
                 isol = ~inst.covering;
                 for i = 1:max(inst.parent.clustering_results.nclusters)
                     if inst.parent.clustering_results.cluster_class_map(i) == 0
-                        lbl = inst.parent.config.UNDEFINED_TAG_ABBREVIATION;
+                        lbl = inst.parent.config.UNDEFINED_TAG.abbreviation;
                     else
                         lbl = inst.parent.clustering_results.classes(inst.parent.clustering_results.cluster_class_map(i)).abbreviation;
                     end
@@ -297,22 +297,27 @@ classdef label_trajectories_view < handle
                 lc = [0 1 0];
             else        
                 axis off;
-                daspect([1 1 1]);                      
-                rectangle('Position',[inst.parent.config.CENTRE_X - inst.parent.config.ARENA_R, inst.parent.config.CENTRE_X - inst.parent.config.ARENA_R, inst.parent.config.ARENA_R*2, inst.parent.config.ARENA_R*2],...
+                daspect([1 1 1]);
+                ra = inst.parent.config.property('ARENA_R');
+                x0 = inst.parent.config.property('CENTRE_X');
+                y0 = inst.parent.config.property('CENTRE_Y');
+                
+                rectangle('Position',[x0 - ra, y0 - ra, ra*2, ra*2],...
                     'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);
                 hold on;
                 axis square;
                 % see if we have a platform to draw
-                if isprop(inst.parent.config, 'PLATFORM_X')
-                    rectangle('Position',[inst.parent.config.PLATFORM_X - inst.parent.config.PLATFORM_R, inst.parent.config.PLATFORM_Y - inst.parent.config.PLATFORM_R, 2*inst.parent.config.PLATFORM_R, 2*inst.parent.config.PLATFORM_R],...
+                if inst.parent.config.has_property('PLATFORM_X')
+                    x0 = inst.parent.config.property('PLATFORM_X');
+                    y0 = inst.parent.config.property('PLATFORM_Y');
+                    rp = inst.parent.config.property('PLATFORM_R');
+                    
+                    rectangle('Position',[x0 - rp, y0 - rp, 2*rp, 2*rp],...
                         'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);             
                 end
             end
 
-            dr_param = inst.parent.config.DATA_REPRESENTATION{repr};
-            dt = dr_param{2};
-
-            pts = tr.data_representation(repr, 'SimplificationTolerance', tol);
+            pts = reprt.apply(tr, 'SimplificationTolerance', tol);
 
             % if the tolerance changed re-scale everything
             if tol ~= inst.simplify_level_prev
@@ -320,7 +325,7 @@ classdef label_trajectories_view < handle
                 inst.simplify_level_prev = tol;
             end    
 
-            if dt == base_config.DATA_TYPE_COORDINATES
+            if repr.data_type == base_config.DATA_TYPE_COORDINATES
                 if vec
                     % simplify trajectory
                     sz = getpixelposition(gca);
@@ -415,7 +420,7 @@ classdef label_trajectories_view < handle
                             set(inst.parent.window, 'currentaxes', inst.sec_view_handles((i - 1)*2 + k - 1));
                         end
 
-                        hasfull = idxfull > 0 && idxfull <= length(inst.parent.config.DATA_REPRESENTATION);
+                        hasfull = idxfull > 0 && idxfull <= length(inst.parent.config.DATA_REPRESENTATIONS);
                         if hasfull
                             % look for parent trajectory
                             id = inst.parent.traj.items(traj_idx).identification;
@@ -429,9 +434,9 @@ classdef label_trajectories_view < handle
                             end                                                
                         end
 
-                        if idx > 0 && idx <= length(inst.parent.config.DATA_REPRESENTATION)
+                        if idx > 0 && idx <= length(inst.parent.config.DATA_REPRESENTATIONS)
                             if vec
-                                tol = get(simplify_tol_handle, 'value')*0.01*inst.parent.config.ARENA_R;
+                                tol = get(simplify_tol_handle, 'value')*0.01*inst.parent.config.property('ARENA_R');
                             else
                                 tol = 0;
                             end
@@ -477,7 +482,7 @@ classdef label_trajectories_view < handle
 
                         if ~isempty(inst.parent.clustering_results) 
                             idx = -1;
-                            if strcmp(inst.parent.tags(j).abbreviation, inst.parent.config.UNDEFINED_TAG_ABBREVIATION)                                                            
+                            if strcmp(inst.parent.tags(j).abbreviation, inst.parent.config.UNDEFINED_TAG.abbreviation)                                                            
                                 idx = 0;
                             else
                                 for k = 1:length(inst.parent.clustering_results.classes)                            
@@ -608,7 +613,7 @@ classdef label_trajectories_view < handle
                 otherwise
                     % classes
                     if val <= inst.parent.clustering_results.nclasses + 8
-                        if strcmp(inst.parent.clustering_results.classes(val - 8).abbreviation, inst.parent.config.UNDEFINED_TAG_ABBREVIATION)
+                        if strcmp(inst.parent.clustering_results.classes(val - 8).abbreviation, inst.parent.config.UNDEFINED_TAG.abbreviation)
                             inst.filter = find(inst.parent.clustering_results.class_map == 0);
                         else
                             inst.filter = find(inst.parent.clustering_results.class_map == (val - 8));                                    
@@ -627,7 +632,7 @@ classdef label_trajectories_view < handle
                inst.distr_status = '';
                for i = 1:length(vals)
                     if vals(i) == 0
-                        lbl = inst.parent.config.UNDEFINED_TAG_ABBREVIATION;
+                        lbl = inst.parent.config.UNDEFINED_TAG.abbreviation;
                     else
                         lbl = inst.parent.clustering_results.classes(vals(i)).abbreviation;
                     end

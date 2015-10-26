@@ -1,7 +1,7 @@
-function ang = trajectory_mean_angle( traj, varargin )
+function ang = trajectory_mean_angle( traj, x0, y0, varargin )
     %TRAJECTORY_ANGLE Compute mean angle of the trajectory    
-    [repr, x0, y0, dx, dy] = process_options(varargin, 'DataRepresentation', 1, 'X0', traj.config.CENTRE_X, 'Y0', traj.config.CENTRE_Y, 'DirX', 1, 'DirY', 0);
-    pts = traj.data_representation(repr);
+    [repr, dx, dy] = process_options(varargin, 'DataRepresentation', base_config.DATA_REPRESENTATION_COORD, 'DirX', 1, 'DirY', 0);
+    pts = repr.apply(traj);
 
     d = [pts(:, 2) - x0, pts(:, 3) - y0];
     % normalize it

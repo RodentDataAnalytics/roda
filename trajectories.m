@@ -19,17 +19,13 @@ classdef trajectories < handle
         partitions_ = [];       
         parent_mapping_ = [];
         segmented_idx_ = [];
-        segmented_map_ = [];
-        config_ = [];
+        segmented_map_ = [];        
     end
     
     methods
         % constructor
         function inst = trajectories(traj)
-            inst.items = traj;
-            if ~isempty(traj)
-                inst.config_ = traj(1).config;
-            end            
+            inst.items = traj;            
         end
                
         function sz = count(obj)
@@ -39,15 +35,9 @@ classdef trajectories < handle
         function obj2 = append(obj, x)
             obj2 = trajectories([]);    
             if isa(x, 'trajectory')
-                obj2.items = [obj.items, x];
-                if isempty(obj2.config_)
-                    obj2.config_ = x.config;
-                end            
+                obj2.items = [obj.items, x];                            
             elseif isa(x, 'trajectories')
-                obj2.items = [obj.items, x.items];
-                if isempty(obj2.config_)
-                    obj2.config_ = x.config_;
-                end
+                obj2.items = [obj.items, x.items];                
             else
                 error('Ops');
             end
@@ -83,13 +73,12 @@ classdef trajectories < handle
             out = obj.hash_;
         end
         
-        function [ segments, partition, cum_partitions ] = partition(obj, idx, nmin, varargin)
+        function [ segments, partition, cum_partitions ] = partition(obj, f, varargin)
         %   SEGMENT(LSEG, OVLP) breaks all trajectories into segments
         %   of length LEN and overlap OVL (given in %)   
         %   returns an array of trajectory segments
             fprintf('Segmenting trajectories... ');
-            [progress] = process_options(varargin, ...
-                               'ProgressCallback', []);
+            [progress] = process_options(varargin, 'ProgressCallback', []);
 
             % construct new object
             segments = trajectories([]);
@@ -98,7 +87,7 @@ classdef trajectories < handle
             p = 1;
             off = 0;
             for i = 1:obj.count                
-                newseg = obj.items(i).partition(idx, varargin{:});
+                newseg = f.apply(obj.items(i));
                 
                 if newseg.count >= nmin                    
                     segments = segments.append(newseg);
@@ -191,17 +180,18 @@ classdef trajectories < handle
                            
             featval = zeros(obj.count, length(feat));            
             for idx = 1:length(feat)
-                att = obj.config_.FEATURES{feat(idx)};
+                id = feat(idx).hash_value;
+                desc = feat(idx).description;
                 % check if we already have the values for this feature cached
-                key = hash_combine(obj.hash_value, hash_value(att{2}));
+                key = hash_combine(obj.hash_value, id);
             
-                fn = [globals.CACHE_DIRECTORY '/' 'features_' num2str(key) '.mat'];
+                fn = fullfile(globals.CACHE_DIRECTORY, ['features_' num2str(key) '.mat']);
                 if exist(fn, 'file')
                     load(fn);                    
                     featval(:, idx) = tmp;
                 else                    
                     % not cached - compute it we shall
-                    fprintf('\nComputing ''%s'' feature values for %d trajectories/segments...', att{2}, obj.count);
+                    fprintf('\nComputing ''%s'' feature values for %d trajectories/segments...', desc, obj.count);
                     
                     q = floor(obj.count / 1000);
                     fprintf('0.0% ');                                        
@@ -219,7 +209,7 @@ classdef trajectories < handle
                             end    
                             
                             if ~isempty(progress)
-                                mess = sprintf('[%d/%d] Computing ''%s'' feature values', idx, length(feat), att{2});
+                                mess = sprintf('[%d/%d] Computing ''%s'' feature values', idx, length(feat), desc);
                                 if progress(mess, i/obj.count)
                                     error('Operation cancelled');
                                 end                                
@@ -252,7 +242,7 @@ classdef trajectories < handle
                         l = 0; % len
                     else % a segment -> use real values for offset/length
                         d = floor(obj.items(filter(i)).offset); % take only the integer part
-                        l = floor(obj.items(filter(i)).compute_feature(obj.config_.FEATURE_LENGTH)); % idem, only integer part
+                        l = floor(obj.items(filter(i)).compute_feature(base_config.FEATURE_LENGTH)); % idem, only integer part
                     end
                     
                     % store set,session,track#,offset,length
@@ -334,7 +324,7 @@ classdef trajectories < handle
             end
             
             % add the 'undefined' tag index
-            undef_tag_idx = tag.tag_position(tags, inst.config_.UNDEFINED_TAG_ABBREVIATION);
+            undef_tag_idx = tag.tag_position(tags, base_config.UNDEFINED_TAG.abbreviation);
             if undef_tag_idx > 0
                 tags = tags([1:undef_tag_idx - 1, (undef_tag_idx + 1):length(tags)]);          
                 tag_new_idx = [1:undef_tag_idx, undef_tag_idx:length(tags)];
@@ -448,7 +438,7 @@ classdef trajectories < handle
                     end
                     % all right now try to match the offset
                     if abs(inst.items(i).offset - seg_dist - other_seg.items(idx).offset) < tolerance && ...
-                       abs(inst.items(i).compute_feature(base_config_.FEATURE_LENGTH) - other_seg.items(idx).compute_feature(base_config_.FEATURE_LENGTH)) < len_tolerance
+                       abs(inst.items(i).compute_feature(base_config.FEATURE_LENGTH) - other_seg.items(idx).compute_feature(base_config.FEATURE_LENGTH)) < len_tolerance
                         % we have a match!
                         mapping(i) = idx;
                         idx = idx + 1;                  
@@ -460,7 +450,7 @@ classdef trajectories < handle
             end
         end      
         
-        function [map, tags] = read_tags(fn, tag_type)
+        function [map, tags] = read_tags(fn, config, tag_type)
             % READ_TAGS(FN, TAG_TYPE)
             %   Reads tags from file FN filtering by tags of type TAG_TYPE only
             %   Tags are sorted according to their score value (if available)
@@ -497,11 +487,11 @@ classdef trajectories < handle
                         end
                         if ~found                            
                             % add to tags list
-                            for l = 1:length(inst.config_.TAGS)
-                                if strcmp(inst.config_.TAGS(l).abbreviation, labels{i, k})
+                            for l = 1:length(config.TAGS)
+                                if strcmp(config.TAGS(l).abbreviation, labels{i, k})
                                     found = 1;                                        
-                                    if nargin < 2 || tag_type == inst.config_.TAG_TYPE_ALL || inst.config_.TAGS(l).type == tag_type
-                                        tags = [tags, inst.config_.TAGS(l)];
+                                    if nargin < 2 || tag_type == base_config.TAG_TYPE_ALL || config.TAGS(l).type == tag_type
+                                        tags = [tags,inst.config.TAGS(l)];
                                         lbls_idx = [lbls_idx, length(tags)];
                                     end
                                     break;

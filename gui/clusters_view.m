@@ -141,7 +141,7 @@ classdef clusters_view < handle
             strings = {'** all **'};            
             for i = 1:inst.main_window.clustering_results.nclusters
                 if inst.main_window.clustering_results.cluster_class_map(i) == 0
-                    lbl = inst.main_window.config.UNDEFINED_TAG_ABBREVIATION;
+                    lbl = inst.main_window.config.UNDEFINED_TAG.abbreviation;
                 else
                     lbl = inst.main_window.clustering_results.classes(inst.main_window.clustering_results.cluster_class_map(i)).abbreviation;
                 end

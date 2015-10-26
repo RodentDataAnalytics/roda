@@ -9,7 +9,7 @@ function segments = segmentation_place_avoidance(traj, section, dt_min, varargin
             else
                 pts = traj.points;
             end
-            segments = segments.append(trajectory(traj.config, pts, traj.set, traj.track, traj.group, traj.id, traj.trial, 1, 0, 1));
+            segments = segments.append(trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));
             
         case config_place_avoidance.SECTION_FULL
             segments = segments.append(traj);
@@ -49,7 +49,7 @@ function segments = segmentation_place_avoidance(traj, section, dt_min, varargin
                     end
                 end
                 segments = segments.append( ...
-                    trajectory(traj.config, traj.points(sub_seg(imax, 1):sub_seg(imax, 2), :), traj.set, traj.track, traj.group, traj.id, traj.trial, 1, cum_dist(sub_seg(imax, 1)), sub_seg(imax, 1)) ...
+                    trajectory(traj.points(sub_seg(imax, 1):sub_seg(imax, 2), :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, cum_dist(sub_seg(imax, 1)), sub_seg(imax, 1), traj.trial_type) ...
                 );                
             else
                 % add all sub-segments
@@ -58,7 +58,7 @@ function segments = segmentation_place_avoidance(traj, section, dt_min, varargin
                     if traj.points(sub_seg(k, 2), 1) - traj.points(sub_seg(k, 1), 1) >= dt_min
                         idx = idx + 1;
                         segments = segments.append( ...
-                            trajectory(traj.config, traj.points(sub_seg(k, 1):sub_seg(k, 2), :), traj.set, traj.track, traj.group, traj.id, traj.trial, idx, cum_dist(sub_seg(k, 1)), sub_seg(k, 1)) ...
+                            trajectory(traj.points(sub_seg(k, 1):sub_seg(k, 2), :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, idx, cum_dist(sub_seg(k, 1)), sub_seg(k, 1), traj.trial_type) ...
                         );                             
                     end
                 end
