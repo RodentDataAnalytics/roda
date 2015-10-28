@@ -20,8 +20,6 @@ classdef main_window < handle
         results_view = [];
         % the trajectories
         traj = [];               
-        % the trajectoriy labels
-        tags = [];               
         % the current clustering results
         clustering_results = [];        
         reference_results = [];
@@ -43,8 +41,8 @@ classdef main_window < handle
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout/Patch'));
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/cm_and_cb_utilities'));
             
-            [inst.tags, inst.features_display, inst.features_cluster, inst.selection, inst.reference_results, name] = process_options(varargin, ...
-                        'Tags', cfg.TAGS, 'Features', cfg.DEFAULT_FEATURE_SET, ...
+            [inst.features_display, inst.features_cluster, inst.selection, inst.reference_results, name] = process_options(varargin, ...
+                        'Features', cfg.DEFAULT_FEATURE_SET, ...
                         'ClusteringFeatures', cfg.CLUSTERING_FEATURE_SET, ...
                         'UserSelection', [], 'ReferenceClassification', [], ...
                         'Name', 'Trajectories tagging' ...
@@ -53,26 +51,7 @@ classdef main_window < handle
             % read labels if we already have something
             inst.config = cfg;
             inst.traj = inst.config.TRAJECTORIES;
-            inst.labels_filename = ''; % inst.config.config.labels_fn;
-            inst.traj_labels = zeros(inst.traj.count, length(inst.tags));
-            if exist(inst.labels_filename, 'file')
-                [labels_data, label_tags] = inst.traj.read_tags(inst.labels_filename, cfg.TAG_TYPE_ALL);
-                [labels_map, labels_idx] = inst.traj.match_tags(labels_data, label_tags);
-                non_matched = sum(labels_idx == -1);
-                if non_matched > 0
-                    fprintf('Warning: %d unmatched trajectories/segments found!\n', non_matched);
-                end
-
-                % match tags with complete list of tags
-                for i = 1:length(label_tags)
-                    for j = 1:length(inst.tags)
-                       if strcmp(label_tags(i).abbreviation, inst.tags(j).abbreviation)
-                           inst.traj_labels(:, j) = labels_map(:, i);
-                           break;
-                       end
-                    end
-                end
-            end
+            inst.traj_labels = inst.config.TAGGED_DATA(1);         
             
             %% compute features
             
@@ -92,7 +71,7 @@ classdef main_window < handle
             delete(h);
                                     
             % create main window
-            inst.window = figure('Visible','off', 'name', inst.config.USER_DESCRIPTION, ...
+            inst.window = figure('Visible','off', 'name', inst.config.DESCRIPTION, ...
                 'Position', [200, 200, 1280, 800], 'Menubar', 'none', 'Toolbar', 'none', 'resize', 'on');
             
             % create menus
@@ -110,7 +89,7 @@ classdef main_window < handle
             inst.tab_panel.TabNames = {'Browsing & labelling', 'Clustering', 'Results'};
             inst.tab_panel.SelectedChild = 1;                      
             inst.update(1);
-            inst.groups_colors = cmapping(inst.config.GROUPS + 1, jet);            
+            inst.groups_colors = cmapping(inst.config.GROUPS + 1, jet);                                    
         end
         
         function show(inst)
@@ -163,7 +142,7 @@ classdef main_window < handle
             
             inst.update(inst.tab_panel.SelectedChild);
         end        
-        
+                
         function clear(inst)
             switch inst.tab_panel.SelectedChild
                 case 1 % show features
@@ -181,10 +160,32 @@ classdef main_window < handle
             end
         end    
         
+        function tags_updated(inst)                                
+            % notify sub-windows
+            if ismethod(inst.labels_view, 'tags_updated')
+                inst.labels_view.tags_updated;
+            end
+            
+            if ismethod(inst.clustering_view, 'tags_updated')
+                inst.clustering_view.tags_updated;
+            end
+            
+            if ismethod(inst.results_view, 'tags_updated')
+                inst.results_view.tags_updated;
+            end                       
+        end        
+        
         function menu_tags_callback(inst, source, eventdata)
             wnd = edit_tags_window;
-            wnd.show(inst.config);            
-            inst.config.TAGS
+            if wnd.show(inst.config);            
+                % let the other interested parties know that the tags
+                % changed
+                inst.tags_updated
+            end
         end       
+        
+        function mat = labels_matrix(inst)
+            mat = inst.traj_labels.matrix(inst.config.TAGS);
+        end    
     end        
 end

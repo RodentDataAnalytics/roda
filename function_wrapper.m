@@ -26,7 +26,11 @@ classdef function_wrapper < handle
         function inst = function_wrapper(desc, func, rarg, prop, varargin)   
             inst.description = desc;
             inst.function_name = func;
-            inst.function_handle = str2func(func);
+            if func(1) == '@'
+                inst.function_handle = eval(func);
+            else
+                inst.function_handle = str2func(func);
+            end
             if nargin > 2
                 inst.return_arg  = rarg;
             end                

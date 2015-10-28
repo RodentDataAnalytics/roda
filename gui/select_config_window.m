@@ -48,13 +48,13 @@ classdef select_config_window < handle
             
             scr_sz = get(0, 'ScreenSize');
              
-            inst.window = dialog('name', 'Create new configuration', ...
+            inst.window = dialog('name', 'Create new configuration', 'WindowStyle', 'modal', ...
                 'Position', [ (scr_sz(3) - w)/2, (scr_sz(4) - h)/2, w, h] ...
             );
                                 
             y = h - vb;
             y = y - 20;            
-            inst.description_edit = uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Name:', ...
+            uicontrol('Parent', inst.window, 'Style', 'text', 'String', 'Name:', ...
                 'HorizontalAlignment', 'left', 'Position', [hb, y, w - 2*hb, 25]);
             y = y - 16;
             inst.description_edit = uicontrol('Parent', inst.window, 'Style', 'edit', 'String', '', ...
@@ -162,6 +162,8 @@ classdef select_config_window < handle
             end 
             
             % save selection for next time
+            watchon;
+            
             temp = {data_dir, out_dir, sub_idx};
             inst.saved_selection(inst.configs.descriptions{idx}) = temp;
             
@@ -170,19 +172,22 @@ classdef select_config_window < handle
             save(inst.persist_fn, 'tmp', 'idx'); 
                         
             inst.selected_config = inst.configs.get_configuration(idx, sub_idx, desc);
-                        
+            % set parameters         
+            inst.selected_config.set_output_directory(out_dir);            
+            inst.selected_config.post_init;
+            
             % load the data
             h = waitbar(0, 'Importing data...', 'CreateCancelBtn', 'setappdata(gcbf, ''cancel'', 1);');
             setappdata(h, 'cancel', 0);            
-            cache_load_trajectories(inst.selected_config, data_dir, ...
-                'ProgressCallback', ...
+            inst.selected_config.load_trajectories_cached(data_dir, 'ProgressCallback', ...
                 @(mess, prog) return2nd(waitbar(prog, h, mess), getappdata(h, 'cancel')) ...
-                );
+            );
             delete(h);
                                     
             % set other parameters            
-            inst.selected_config.set_output_directory(out_dir);
             inst.result = 1;
+            
+            watchoff;
             
             delete(inst.window);                        
         end

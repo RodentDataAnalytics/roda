@@ -2,7 +2,7 @@ classdef trajectory_feature < handle
     %TAG Groups together some commmon attributes of trajectories
     properties(GetAccess = 'public', SetAccess = 'protected')
         % short and long descriptions
-        abbreviation = '';     
+        abbreviation = '';            
     end
     
     properties(GetAccess = 'private', SetAccess = 'private')
@@ -33,6 +33,10 @@ classdef trajectory_feature < handle
                     
         function ret = value(inst, traj)                
             ret = inst.f_.apply1(traj);
+        end
+        
+        function desc = description(inst)
+            desc = inst.f_.description;
         end
     end
 end

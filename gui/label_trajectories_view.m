@@ -90,8 +90,7 @@ classdef label_trajectories_view < handle
                 % feature sorting control
                 sortstr = {'** none **', '** distance to centre (max) **', '** distance to centre (euclidean) **', '** combined **', '** random **' };
                 for i = 1:length(inst.parent.features) % have to do this way because of stupid matlab        
-                    tmp = inst.parent.config.FEATURES{inst.parent.features(i)};
-                    sortstr = [sortstr, tmp{2}];
+                    sortstr = [sortstr, inst.parent.features(i).description];
                 end
                 sort_box = uiextras.HBox('Parent', filter_box);
                 uicontrol('Parent', sort_box, 'Style', 'text', 'String', 'Sort:');        
@@ -120,9 +119,8 @@ classdef label_trajectories_view < handle
 
                 % build a list with all the possible data representations
                 strs = {};
-                for i = 1:length(inst.parent.config.DATA_REPRESENTATIONS)
-                    tmp = inst.parent.config.DATA_REPRESENTATIONS{i};
-                    strs = [strs, tmp{1}];
+                for i = 1:length(inst.parent.config.DATA_REPRESENTATIONS)                    
+                    strs = [strs, inst.parent.config.DATA_REPRESENTATIONS(i).description];
                 end
                 if ~isempty(inst.parent.traj)
                     full_status = 'on';
@@ -242,8 +240,8 @@ classdef label_trajectories_view < handle
                     cb_box = uiextras.VButtonBox('Parent', view_hbox);
                     set(view_hbox, 'Sizes', [-1, 50]);       
                     hcb_new = [];
-                    for k = 1:length(inst.parent.tags)
-                        txt = inst.parent.tags(k).abbreviation;
+                    for k = 1:length(inst.parent.config.TAGS)
+                        txt = inst.parent.config.TAGS(k).abbreviation;
                         hcb_new = [ hcb_new, ...
                                       uicontrol('Parent', cb_box, 'Style', 'checkbox', 'String', txt, 'Callback', {@inst.checkbox_callback}) ...
                                   ];
@@ -277,7 +275,7 @@ classdef label_trajectories_view < handle
                     nclus = sum(inst.parent.clustering_results.cluster_index == i);
                     strings = [strings, sprintf('Cluster #%d (''%s'', N=%d, L=%d, I=%d)', ... 
                                                 i, lbl, nclus, ...
-                                                length(find(sum(inst.parent.traj_labels(inst.parent.clustering_results.cluster_index == i, :), 2) > 0)), ...
+                                                length(find(sum(inst.parent.labels_matrix(inst.parent.clustering_results.cluster_index == i, :), 2) > 0)), ...
                                                 sum(isol(inst.parent.clustering_results.cluster_index == i)))];  
                 end
             end
@@ -317,7 +315,7 @@ classdef label_trajectories_view < handle
                 end
             end
 
-            pts = reprt.apply(tr, 'SimplificationTolerance', tol);
+            pts = repr.apply(tr, 'SimplificationTolerance', tol);
 
             % if the tolerance changed re-scale everything
             if tol ~= inst.simplify_level_prev
@@ -441,7 +439,9 @@ classdef label_trajectories_view < handle
                                 tol = 0;
                             end
 
-                            inst.plot_trajectory(inst.parent.traj.items(traj_idx), idx, vec, tol, hasfull);
+                            inst.plot_trajectory( inst.parent.traj.items(traj_idx) ...
+                                                , inst.parent.config.DATA_REPRESENTATIONS(idx) ...
+                                                , vec, tol, hasfull);
                         end                                        
                     end
 
@@ -459,9 +459,8 @@ classdef label_trajectories_view < handle
                     for j = 1:length(inst.parent.features)
                         if j > 1
                             str = strcat(str, ' | ');
-                        end
-                        tmp = inst.parent.config.FEATURES{inst.parent.features(j)};
-                        str = strcat(str, sprintf('%s: %.4f', tmp{1}, inst.parent.features_values(traj_idx, j)));                    
+                        end                        
+                        str = strcat(str, sprintf('%s: %.4f', inst.parent.features(j).abbreviation, inst.parent.features_values(traj_idx, j)));                    
                     end
                     set(inst.desc_handles(i), 'String', str);
 
@@ -474,7 +473,8 @@ classdef label_trajectories_view < handle
 
                     % update checkboxes
                     handles = inst.cb_handles(i, :);
-                    arrayfun(@(h,j) set(h, 'Value', inst.parent.traj_labels(traj_idx, j)), handles, 1:length(handles));  
+                    tags = inst.parent.traj_labels.has_tag(traj_idx, inst.parent.config.TAGS); 
+                    arrayfun(@(h,j) set(h, 'Value', tags(j)), handles, 1:length(handles));  
 
                     for j = 1:(length(handles) - 1)
                         % by default no color
@@ -482,11 +482,11 @@ classdef label_trajectories_view < handle
 
                         if ~isempty(inst.parent.clustering_results) 
                             idx = -1;
-                            if strcmp(inst.parent.tags(j).abbreviation, inst.parent.config.UNDEFINED_TAG.abbreviation)                                                            
+                            if inst.parent.config.TAGS(j).matches(inst.parent.config.UNDEFINED_TAG.abbreviation)
                                 idx = 0;
                             else
                                 for k = 1:length(inst.parent.clustering_results.classes)                            
-                                    if strcmp(inst.parent.tags(j).abbreviation, inst.parent.clustering_results.classes(k).abbreviation)                                
+                                    if inst.parent.config.TAGS(j).matches(inst.parent.clustering_results.classes(k).abbreviation)                                
                                         idx = k;
                                         break;
                                     end
@@ -499,10 +499,10 @@ classdef label_trajectories_view < handle
                             end
 
                             if idx ~= -1 && inst.parent.clustering_results.class_map(traj_idx) == idx                            
-                                if inst.parent.traj_labels(traj_idx, j)                                
+                                if tags(j)                                
                                     c = [0.2, 1., 0.2];                            
                                 else
-                                    if ~isempty(find(inst.parent.traj_labels(traj_idx, :)))                              
+                                    if sum(tags) > 0                              
                                         c = [1., 0.2, 0.2];                            
                                     else
                                         c = [.5, 0.5, 0.9];
@@ -524,31 +524,35 @@ classdef label_trajectories_view < handle
             inst.update_status;
         end   
 
-        function save_data(inst)
+        function save_data(inst)           
             % save values from screen
             [nx, ny] = inst.number_of_views;
             for i = 0:nx*ny - 1
                 if length(inst.filter) >= inst.cur + i
-                    vals = arrayfun(@(h) get(h, 'Value'), inst.cb_handles(i + 1, :));                
-                    inst.parent.traj_labels(inst.filter(inst.sorting(inst.cur + i)), :) = vals;
+                    vals = arrayfun(@(h) get(h, 'Value'), inst.cb_handles(i + 1, :));                    
+                    inst.parent.traj_labels.replace_tags(inst.filter(inst.sorting(inst.cur + i)), ...
+                        inst.parent.config.TAGS(vals == 1) ...
+                    );
                 end
             end
 
-            inst.parent.traj.save_tags(inst.parent.labels_filename, inst.parent.tags, inst.parent.traj_labels, []);
+            % save only the tags to speed up things
+            inst.parent.config.save_to_file('TagsOnly', 1);            
         end
 
         function update_status(inst)
             [nx, ny] = inst.number_of_views;
             str = sprintf('%d to %d from %d\n\n', inst.cur, inst.cur + nx*ny - 1, length(inst.filter));
             first = 1;
-            for i = 1:length(inst.parent.tags)
-                n = sum(inst.parent.traj_labels(inst.filter, i));            
+            tags = inst.parent.labels_matrix;
+            for i = 1:size(tags, 2)
+                n = sum(tags(inst.filter, i));            
                 if n > 0
                     if first
                         first = 0;
-                        str = strcat(str, sprintf('\n%s: %d  ', inst.parent.tags(i).abbreviation, n));
+                        str = strcat(str, sprintf('\n%s: %d  ', inst.parent.config.TAGS(i).abbreviation, n));
                     else
-                        str = strcat(str, sprintf(' | %s: %d', inst.parent.tags(i).abbreviation, n));
+                        str = strcat(str, sprintf(' | %s: %d', inst.parent.config.TAGS(i).abbreviation, n));
                     end
                 end
             end
@@ -579,11 +583,11 @@ classdef label_trajectories_view < handle
                     % everyone
                     inst.filter = 1:inst.parent.traj.count;
                 case 2                        
-                    % everyone labelled                inst.inst.filter = find(sum(inst.parent.traj_labels, 2) > 0);                            
-                    inst.filter = find(sum(inst.parent.traj_labels, 2) > 0);                            
+                    % everyone labelled
+                    inst.filter = find(sum(inst.parent.labels_matrix, 2) > 0);                            
                 case 3                        
                     % everyone not labelled
-                    inst.filter = find(sum(inst.parent.traj_labels, 2) == 0);                                        
+                    inst.filter = find(sum(inst.parent.labels_matrix, 2) == 0);                                        
                 case 4
                     inst.filter = find(inst.covering == 0);
                 case 5
@@ -712,12 +716,15 @@ classdef label_trajectories_view < handle
 
         function layout_change_callback(inst, source, eventdata)
             % save current properties
+            set(inst.parent.window, 'pointer', 'watch')
+            drawnow;
             inst.parent.config.set_property('BROWSE_SEGMENTS_NX', get(inst.xviews_combo, 'value'));
             inst.parent.config.set_property('BROWSE_SEGMENTS_NY', get(inst.yviews_combo, 'value'));
             inst.parent.config.save_to_file;
             
             inst.create_views;
             inst.show_trajectories;
+            set(inst.parent.window, 'pointer', 'arrow')            
         end
 
         function sorting_callback(inst, source, eventdata)
@@ -780,6 +787,13 @@ classdef label_trajectories_view < handle
             [~, inst.covering] = inst.parent.clustering_results.coverage();              
         
             inst.fiter_combo_valid = 0;                    
+        end
+        
+        function tags_updated(inst, source, eventdata)
+            if ~isempty(inst.views_grid)
+                inst.layout_change_callback;
+                inst.update_filter_combo;
+            end
         end
     end   
 end

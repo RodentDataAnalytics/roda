@@ -12,20 +12,45 @@ classdef config_place_avoidance < base_config
         POINT_STATE_SHOCK = 2;
         POINT_STATE_INTERSHOCK_LATENCY = 3;
         POINT_STATE_OUTSIDE_LATENCY = 4;
-        POINT_STATE_BAD = 5;
-                                            
-        FEATURE_AVERAGE_SPEED_ARENA = trajectory_feature('Va', 'Average speed (arena)', 'trajectory_average_speed', 1, {}, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
-        FEATURE_VARIANCE_SPEED_ARENA = trajectory_feature('Va_var', 'Log variance speed (arena)', 'feature_transform', 1, {}, @log, 'trajectory_variance_speed', 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
-        FEATURE_LENGTH_ARENA = trajectory_feature('L_A', 'Length (arena)', 'trajectory_length', 1, {}, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
-        FEATURE_LOG_RADIUS = trajectory_feature('log_R12', 'Log radius  ', 'trajectory_radius', 1, {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}, 'TransformationFunc', @(x) -log(x), 'AveragingFunc', @(X) mean(X));
-        FEATURE_IQR_RADIUS_ARENA = trajectory_feature('Riqr_A', 'IQR radius (arena)', 'trajectory_radius', 2, {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
-        FEATURE_TIME_CENTRE = trajectory_feature('Tc_A', 'Time centre', 'trajectory_time_within_radius', 1, {'CENTRE_X', 'CENTRE_Y', 'TIME_WITHIN_RADIUS_R'}, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
-        FEATURE_NUMBER_OF_SHOCKS = trajectory_feature('N_s', 'Number of shocks', 'trajectory_count_events', 1, {}, config_place_avoidance.POINT_STATE_SHOCK);
-        FEATURE_FIRST_SHOCK = trajectory_feature('T1', 'Time for first shock', 'trajectory_first_event', 1, {}, config_place_avoidance.POINT_STATE_SHOCK);
-        FEATURE_MAX_INTER_SHOCK = trajectory_feature('Tmax', 'Maximum time between shocks', 'trajectory_max_inter_event', 1, {}, config_place_avoidance.POINT_STATE_SHOCK);
+        POINT_STATE_BAD = 5;               
+        
+        % wrap functions so that we can better deal with them (e.g. compute
+        % a hash that uniquely identify them)
+        FUNCTION_LOG = function_wrapper('Log', '@(x) log(x)');        
+        FUNCTION_LOG_NEG = function_wrapper('Minus log', '@(x) -log(x)');
+        FUNCTION_MEAN = function_wrapper('Mean', '@(x) mean(x)');       
+                
+        FEATURE_AVERAGE_SPEED_ARENA = trajectory_feature('Va', 'Average speed (arena)', 'trajectory_average_speed', 1, {}, ...
+            'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD );
+        FEATURE_VARIANCE_SPEED_ARENA = trajectory_feature('Va_var', 'Variance speed arena', 'trajectory_variance_speed', 1, {}, ...
+            'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD );
+        FEATURE_LOG_VARIANCE_SPEED_ARENA = trajectory_feature('Va_var', 'Log variance speed (arena)', 'feature_transform', 1, {}, ...
+            config_place_avoidance.FUNCTION_LOG, ...
+            config_place_avoidance.FEATURE_VARIANCE_SPEED_ARENA );
+        FEATURE_LENGTH_ARENA = trajectory_feature('L_A', 'Length (arena)', 'trajectory_length', 1, {}, ...
+            'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD );
+        FEATURE_LOG_RADIUS = trajectory_feature('log_R12', 'Log radius  ', 'trajectory_radius', 1, ...
+            {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}, ...
+            'TransformationFunc', config_place_avoidance.FUNCTION_LOG_NEG, ...
+            'AveragingFunc', config_place_avoidance.FUNCTION_MEAN );
+        FEATURE_IQR_RADIUS_ARENA = trajectory_feature('Riqr_A', 'IQR radius (arena)', 'trajectory_radius', 2, ...
+            {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}, ...
+            'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD );
+        FEATURE_TIME_CENTRE = trajectory_feature('Tc_A', 'Time centre', 'trajectory_time_within_radius', 1, ...
+            {'CENTRE_X', 'CENTRE_Y', 'TIME_WITHIN_RADIUS_R'}, ...
+            'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD );
+        FEATURE_NUMBER_OF_SHOCKS = trajectory_feature('N_s', 'Number of shocks', 'trajectory_count_events', 1, {}, ...
+            config_place_avoidance.POINT_STATE_SHOCK );
+        FEATURE_FIRST_SHOCK = trajectory_feature('T1', 'Time for first shock', 'trajectory_first_event', 1, {}, ...
+            config_place_avoidance.POINT_STATE_SHOCK );
+        FEATURE_MAX_INTER_SHOCK = trajectory_feature('Tmax', 'Maximum time between shocks', 'trajectory_max_inter_event', 1, {}, ...
+            config_place_avoidance.POINT_STATE_SHOCK );
         FEATURE_ENTRANCES_SHOCK = trajectory_feature('Nent', 'Number of entrances', 'trajectory_entrances_shock');
-        FEATURE_ANGULAR_DISTANCE_SHOCK = trajectory_feature('D_ang', 'Angular dist. shock', 'trajectory_angular_distance_shock');                 
-        FEATURE_SHOCK_RADIUS = trajectory_feature('R_s', 'Shock radius', 'trajectory_event_radius', 1, {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}, config_place_avoidance.POINT_STATE_SHOCK);
+        FEATURE_ANGULAR_DISTANCE_SHOCK = trajectory_feature('D_ang', 'Angular distance shock', 'trajectory_angular_distance_shock', 1, ...
+            {'CENTRE_X', 'CENTRE_Y', 'SHOCK_AREA_ANGLE'} );
+        FEATURE_SHOCK_RADIUS = trajectory_feature('R_s', 'Shock radius', 'trajectory_event_radius', 1, ...
+            {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}, ...
+            config_place_avoidance.POINT_STATE_SHOCK );
                                                                             
         FEATURE_SET_APAT = [ base_config.FEATURE_LATENCY, ...
                              config_place_avoidance.FEATURE_AVERAGE_SPEED_ARENA, ...                                                                                                
@@ -58,15 +83,15 @@ classdef config_place_avoidance < base_config
         SECTION_AVOID = 3; % segments between shocks
         SECTION_FULL = 0; % complete trajectories        
                                   
-        DATA_REPRESENTATION_ARENA_COORD = data_representation('Arena coordinates', base_config.DATA_TYPE_COORDINATES, 'trajectory_arena_coord');
-        DATA_REPRESENTATION_ARENA_SPEED = data_representation('Speed (arena)', base_config.DATA_TYPE_SCALAR_FIELD, 'trajectory_speed', 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
-        DATA_REPRESENTATION_SHOCKS = data_representation('Shock events', base_config.DATA_TYPE_EVENTS, 'trajectory_events', config_place_avoidance.POINT_STATE_SHOCK);
-        DATA_REPRESENTATION_ARENA_SHOCKS = data_representation('Shock events (arena)', base_config.DATA_TYPE_EVENTS, 'trajectory_events', config_place_avoidance.POINT_STATE_SHOCK, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
+        DATA_REPRESENTATION_ARENA_COORD = data_representation('Arena coordinates', base_config.DATA_TYPE_COORDINATES, 'trajectory_arena_coord', 1, {'CENTRE_X', 'CENTRE_Y', 'ROTATION_FREQUENCY'});
+        DATA_REPRESENTATION_ARENA_SPEED = data_representation('Speed (arena)', base_config.DATA_TYPE_SCALAR_FIELD, 'trajectory_speed', 1, {}, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
+        DATA_REPRESENTATION_SHOCKS = data_representation('Shock events', base_config.DATA_TYPE_EVENTS, 'trajectory_events', 1, {}, config_place_avoidance.POINT_STATE_SHOCK);
+        DATA_REPRESENTATION_ARENA_SHOCKS = data_representation('Shock events (arena)', base_config.DATA_TYPE_EVENTS, 'trajectory_events', 1, {}, config_place_avoidance.POINT_STATE_SHOCK, 'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD);
         
         %%%
         %%% Segmentation
         %%%
-        SEGMENTATION_PLACE_AVOIDANCE = function_wrapper('Place avoidance', 'segmentation_place_avoidance', 1, {'SEGMENT_SECTION', 'SEGMENT_MINIMUM_LENGTH'});
+        SEGMENTATION_PLACE_AVOIDANCE = function_wrapper('Place avoidance', 'segmentation_place_avoidance', 1, {'SEGMENT_SECTION', 'SEGMENT_MINIMUM_SHOCKS_DELAY'});
     end    
             
     methods        

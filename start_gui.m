@@ -49,7 +49,7 @@ switch resp
         % save it already
         cfg.save_to_file();          
         % save also last folder
-        pn = cfg.OUTPUT_DIR;
+        pn = [cfg.OUTPUT_DIR globals.PATH_SEPARATOR];
         fn = cfg.SAVED_FILE_NAME;        
 end
 

@@ -3,6 +3,7 @@ classdef edit_tags_window < handle
         % the configuration that the user selected (see /config folder)
         tags = [];
         result = 0;
+        config = [];
         % window handle        
         window = []; 
         % controls
@@ -22,6 +23,7 @@ classdef edit_tags_window < handle
         function res = show(inst, config)
             inst.result = 0;
             inst.tags = config.TAGS;
+            inst.config = config;
                             
             w = 400;
             h = 500;
@@ -30,7 +32,7 @@ classdef edit_tags_window < handle
             
             scr_sz = get(0, 'ScreenSize');
                          
-            inst.window = dialog('name', 'Edit tags', ...
+            inst.window = dialog('name', 'Edit tags', 'WindowStyle', 'modal', ...
                 'Position', [ (scr_sz(3) - w)/2, (scr_sz(4) - h)/2, w, h] ...
             );                    
                           
@@ -64,7 +66,7 @@ classdef edit_tags_window < handle
             strs = {};
             for i = 1:length(inst.tags)
                 tmp = inst.tags(i);
-                strs = [strs, [tmp.abbreviation ' - ' tmp.description '[' tmp.type ']']];
+                strs = [strs, [tmp.abbreviation ' - ' tmp.description ' [' inst.config.TAG_TYPES_DESCRIPTION{tmp.type} ']']];
             end
             set(inst.tags_listbox, 'Value', 1);            
             set(inst.tags_listbox, 'String', strs);
@@ -81,7 +83,11 @@ classdef edit_tags_window < handle
         end
         
         function new_callback(inst, source, eventdata)
-            
+            new_wnd = new_tag_window;
+            if new_wnd.show(inst.config)
+                inst.tags = [inst.tags, new_wnd.new_tag];
+                inst.update;
+            end
         end
         
         function delete_callback(inst, source, eventdata)

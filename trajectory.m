@@ -15,6 +15,7 @@ classdef trajectory < handle
         start_time = -1;
         end_time = -1;
         start_index = -1;        
+        tags = {};
     end
     
     properties(GetAccess = 'protected', SetAccess = 'protected')        
@@ -170,7 +171,7 @@ classdef trajectory < handle
         
         function pts = simplify(inst, tol)
             pts = trajectory_simplify_impl(inst.points, tol);
-        end                            
+        end                               
     end
     
     methods(Static)

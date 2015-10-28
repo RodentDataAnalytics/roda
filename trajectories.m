@@ -73,7 +73,7 @@ classdef trajectories < handle
             out = obj.hash_;
         end
         
-        function [ segments, partition, cum_partitions ] = partition(obj, f, varargin)
+        function [ segments, partition, cum_partitions ] = partition(obj, f, nmin, varargin)
         %   SEGMENT(LSEG, OVLP) breaks all trajectories into segments
         %   of length LEN and overlap OVL (given in %)   
         %   returns an array of trajectory segments
@@ -224,40 +224,7 @@ classdef trajectories < handle
                 end                                                
             end                                            
         end
-
-        function save_tags(obj, fn, tags, map, filter)
-            %SAVE_TAGS Summary of this function goes here
-            %   Detailed explanation goes here            
-            if isempty(filter)
-                 filter = 1:obj.count;
-            end
-            fid = fopen(fn, 'w');
-            for i = 1:length(filter)  
-                if sum(map(i, :)) > 0 % is there anything to be written?
-                    % we have something to write
-                    data_id = obj.items(filter(i)).data_identification;
-                    id = obj.items(filter(i)).identification;
-                    if id(4) == -1 % full trajectory ?
-                        d = -1; % offset
-                        l = 0; % len
-                    else % a segment -> use real values for offset/length
-                        d = floor(obj.items(filter(i)).offset); % take only the integer part
-                        l = floor(obj.items(filter(i)).compute_feature(base_config.FEATURE_LENGTH)); % idem, only integer part
-                    end
-                    
-                    % store set,session,track#,offset,length
-                    str = sprintf('%d,%d,%d,%d,%d', data_id(1), data_id(2), data_id(3), d, l);
-                    for j = 1:length(tags)
-                        if map(i, j) == 1
-                            str = strcat(str, sprintf(',%s', tags(j).abbreviation));
-                        end
-                    end                
-                    fprintf(fid, '%s\n', str);
-                end
-            end
-            fclose(fid);
-        end              
-        
+                 
         function [map, idx, tag_map] = match_tags(obj, labels, tags, sel_tags)
             % start with an empty set
             map = zeros(obj.count, length(tags));
@@ -302,38 +269,21 @@ classdef trajectories < handle
                 tag_map = 1:length(tags);
             end
         end                   
-        
-        function res = classifier(inst, labels_fn, feat, tags_type, hyper_tags, npca_feat)
-            if exist(labels_fn, 'file')
-                if nargin > 3
-                    [labels_data, tags] = trajectories.read_tags(labels_fn, tags_type);            
-                else
-                    [labels_data, tags] = trajectories.read_tags(labels_fn);                            
-                end
-                
-                if nargin > 4 && ~isempty(hyper_tags)            
-                    [labels_map, labels_idx] = inst.match_tags(labels_data, tags, hyper_tags);
-                    tags = hyper_tags;
-                else
-                    [labels_map, labels_idx] = inst.match_tags(labels_data, tags);                
-                end                
-            else
-                labels_map = zeros(inst.count, 1);
-                tags = [];
-                labels_idx = [];
-            end
-            
+                              
+        function res = classifier(inst, feat, selected_tags, npca_feat)
+            labels_map = inst.tags_mapping(selected_tags);
+            labels_set = sum(labels_map, 2) > 0;
+                        
             % add the 'undefined' tag index
-            undef_tag_idx = tag.tag_position(tags, base_config.UNDEFINED_TAG.abbreviation);
+            undef_tag_idx = tag.tag_position(selected_tags, base_config.UNDEFINED_TAG.abbreviation);
             if undef_tag_idx > 0
-                tags = tags([1:undef_tag_idx - 1, (undef_tag_idx + 1):length(tags)]);          
-                tag_new_idx = [1:undef_tag_idx, undef_tag_idx:length(tags)];
+                selected_tags = selected_tags([1:undef_tag_idx - 1, (undef_tag_idx + 1):length(selected_tags)]);          
+                tag_new_idx = [1:undef_tag_idx, undef_tag_idx:length(selected_tags)];
                 tag_new_idx(undef_tag_idx) = 0;
             else
-                tag_new_idx = 1:length(tags);
+                tag_new_idx = 1:length(selected_tags);
             end
             
-            assert(size(labels_map, 1) == inst.count);
             labels = repmat({-1}, 1, inst.count);
             for i = 1:inst.count
                 class = find(labels_map(i, :) == 1);
@@ -348,30 +298,31 @@ classdef trajectories < handle
                 end
             end
                          
-            global g_trajectories;            
             unmatched = find(labels_idx == -1);
             extra_lbl = {};
             extra_feat = []; 
             extra_ids = [];
-            if ~isempty(unmatched)
-                % load all trajectories
-                cache_trajectories;
             
-                for i = 1:length(unmatched)
-                    id = labels_data{unmatched(i), 1};
-                    % unmatched segments - look at the global trajectories cache               
-                    idx = g_trajectories.index_of(id(1), id(2), id(3), -1, 0);                
-                    if idx == -1
-                        fprintf('Warning: could not match label #%d to any trajectory\n', unmatched(i));
-                    else
-                        seg = g_trajectories.items(idx).sub_segment(id(4), id(5));
-                        extra_feat = [extra_feat; seg.compute_features(feat)];
-                        tmp = labels_data{unmatched(i), 2};
-                        extra_lbl = [extra_lbl, tag_new_idx(tmp)];
-                        extra_ids = [extra_ids; id];
-                    end
-                end
-            end
+            % TODO: reimplement/rerhink the mixing of trajectory labels
+%             if ~isempty(unmatched)
+%                 % load all trajectories
+%                 cache_trajectories;
+%             
+%                 for i = 1:length(unmatched)
+%                     id = labels_data{unmatched(i), 1};
+%                     % unmatched segments - look at the global trajectories cache               
+%                     idx = g_trajectories.index_of(id(1), id(2), id(3), -1, 0);                
+%                     if idx == -1
+%                         fprintf('Warning: could not match label #%d to any trajectory\n', unmatched(i));
+%                     else
+%                         seg = g_trajectories.items(idx).sub_segment(id(4), id(5));
+%                         extra_feat = [extra_feat; seg.compute_features(feat)];
+%                         tmp = labels_data{unmatched(i), 2};
+%                         extra_lbl = [extra_lbl, tag_new_idx(tmp)];
+%                         extra_ids = [extra_ids; id];
+%                     end
+%                 end
+%             end
                 
             feat_val = [extra_feat; inst.compute_features(feat)];
             
@@ -381,7 +332,7 @@ classdef trajectories < handle
                 feat_val = feat_val*coeff(:, 1:npca_feat);                          
             end    
             
-            res = semisupervised_clustering(inst, feat_val, [extra_lbl, labels], tags, length(extra_lbl));            
+            res = semisupervised_clustering(inst, feat_val, [extra_lbl, labels], selected_tags, length(extra_lbl));            
         end   
                 
         
@@ -448,76 +399,6 @@ classdef trajectories < handle
                     end
                 end
             end
-        end      
-        
-        function [map, tags] = read_tags(fn, config, tag_type)
-            % READ_TAGS(FN, TAG_TYPE)
-            %   Reads tags from file FN filtering by tags of type TAG_TYPE only
-            %   Tags are sorted according to their score value (if available)
-            if ~exist(fn, 'file')
-                error('file not found');
-            end    
-            tags = [];
-            % use an 3rd party function to read the file since matlab is unable to
-            % parse anything other than a very basicc CSV file (!)
-            labels = robustcsvread(fn);
-            map = cell([size(labels, 1), 2]);            
-            for i = 1:size(labels, 1)
-                if isempty(labels{i, 1})
-                    continue;
-                end
-                % set and track numbers
-                set = sscanf(labels{i, 1}, '%d');
-                day = sscanf(labels{i, 2}, '%d');
-                track = sscanf(labels{i, 3}, '%d');
-                off = sscanf(labels{i, 4}, '%d');
-                len = sscanf(labels{i, 5}, '%d');
-                
-                lbls_idx = [];
-                
-                for k = 6:size(labels, 2)
-                    if ~isempty(labels{i, k})
-                        found = 0;
-                        for l = 1:length(tags)
-                            if strcmp(tags(l).abbreviation, labels{i, k})
-                                found = 1;
-                                lbls_idx = [lbls_idx, l];
-                                break;
-                            end
-                        end
-                        if ~found                            
-                            % add to tags list
-                            for l = 1:length(config.TAGS)
-                                if strcmp(config.TAGS(l).abbreviation, labels{i, k})
-                                    found = 1;                                        
-                                    if nargin < 2 || tag_type == base_config.TAG_TYPE_ALL || config.TAGS(l).type == tag_type
-                                        tags = [tags,inst.config.TAGS(l)];
-                                        lbls_idx = [lbls_idx, length(tags)];
-                                    end
-                                    break;
-                                end
-                            end     
-                            if ~found
-                                fprintf('Warning: unknown tag ''%s''\n', labels{i, k});
-                            end
-                        end
-                    end
-                end
-                
-                map{i, 1} = [set, day, track, off, len];
-                map{i, 2} = lbls_idx;
-            end
-            % sort tags
-            scores = arrayfun( @(t) t.score, tags);
-            [~, ord] = sort(scores);
-            tag_per = 1:length(ord);
-            tag_per(ord) = 1:length(ord);
-            tags = tags(ord);
-            for i = 1:length(map)
-                lbls = map{i, 2};
-                lbls = arrayfun( @(x) tag_per(x), lbls);
-                map{i, 2} = lbls; 
-            end
-        end
+        end                     
     end        
 end

@@ -14,6 +14,7 @@ function MM=robustcsvread(filename, varargin)
 
 % Tiago Gehring, Mar/2015: added delimiter options, started messing the
 % code. Figured why not?
+MM = {};
 [line_delim, delim] = process_options(varargin, ...
             'LineDelimiter', '\n', 'Delimiter', ',' ...
           );            

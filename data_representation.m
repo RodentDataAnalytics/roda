@@ -34,5 +34,9 @@ classdef data_representation < handle
         function ret = apply(inst, traj, varargin)                
             ret = inst.f_.apply1(traj, varargin{:});
         end
+        
+        function desc = description(inst)
+            desc = inst.f_.description;
+        end
     end
 end

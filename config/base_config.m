@@ -7,7 +7,7 @@ classdef base_config < handle
         TAG_TYPE_BEHAVIOUR_CLASS = 1;
         TAG_TYPE_TRAJECTORY_ATTRIBUTE = 2;               
         
-        UNDEFINED_TAG = tag('UD', 'undefined', base_config.TAG_TYPE_BEHAVIOUR_CLASS); 
+        UNDEFINED_TAG = tag('UD', 'undefined', base_config.TAG_TYPE_BEHAVIOUR_CLASS);
                
         DEFAULT_TAGS = [ base_config.UNDEFINED_TAG ];                   
         
@@ -76,6 +76,7 @@ classdef base_config < handle
         SEGMENTATION_FUNCTION = [];
         OUTPUT_DIR = 'unknown.mat';
         SAVED_FILE_NAME = [];
+        SAVED_TAGS_FILE_NAME = [];
         TRAJECTORIES = [];
         TAG_TYPES = [];
         
@@ -89,6 +90,8 @@ classdef base_config < handle
         GROUPS = 1;        
         GROUPS_DESCRIPTION = {'Unknown'};        
         TRIAL_TYPES_DESCRIPTION = {'Unknown'};
+        TAG_TYPES_DESCRIPTION = [];
+        TAGGED_DATA = [];        
     end
     
     properties(GetAccess = 'private', SetAccess = 'private')
@@ -100,7 +103,7 @@ classdef base_config < handle
            [extr_tags, clus_feat_set, feat_set, extr_data_repr, extr_features, ...
             inst.SESSIONS, inst.TRIALS_PER_SESSION,  ...
             inst.TRIAL_TYPES_DESCRIPTION, inst.TRIAL_TYPES, inst.GROUPS_DESCRIPTION, ...
-            inst.SEGMENTATION_FUNCTION, inst.TAG_TYPES, prop] = process_options(varargin, ...
+            inst.SEGMENTATION_FUNCTION, inst.TAG_TYPES_DESCRIPTION, prop] = process_options(varargin, ...
                 'Tags', [], ...
                 'ClusteringFeatureset', config_place_avoidance.CLUSTERING_FEATURE_SET_APAT, ...
                 'FeatureSet', config_place_avoidance.FEATURE_SET_APAT, ...    
@@ -130,6 +133,8 @@ classdef base_config < handle
             for i = 1:2:length(prop)
                 inst.set_property(prop{i}, prop{i + 1});
             end            
+            
+            inst.SAVED_FILE_NAME = [inst.DESCRIPTION '.mat'];            
        end
         
         function val = hash_value(inst)
@@ -138,6 +143,10 @@ classdef base_config < handle
         
         function set_trajectories(inst, traj)
             inst.TRAJECTORIES = traj;
+            
+            % define one set of tags - we could in theory have multiple            
+            inst.SAVED_TAGS_FILE_NAME = {[inst.DESCRIPTION '_tags01.csv']};
+            inst.TAGGED_DATA = tags_list('Default', inst.TRAJECTORIES);
         end
                 
         function set_output_directory(inst, new_dir)
@@ -149,19 +158,25 @@ classdef base_config < handle
         
         function set_subconfig(inst, conf)
             inst.SUB_CONFIGURATION = conf;
-        end
-        
-        function set_description(inst, desc)
-            inst.USER_DESCRIPTION = desc;
-            inst.SAVED_FILE_NAME = [desc '.mat'];
-        end
+        end             
             
-        function save_to_file(inst)
-            fn = fullfile(inst.OUTPUT_DIR, inst.SAVED_FILE_NAME);
-            SAVED_CONFIGURATION = inst;
-            save(fn, 'SAVED_CONFIGURATION');
-            clear('SAVED_CONFIGURATION');
-        end
+        function save_to_file(inst, varargin)
+            tags_only = process_options(varargin, 'TagsOnly', 0);
+            
+            % save the tags
+            for i = 1:length(inst.SAVED_TAGS_FILE_NAME)
+                fn = fullfile(inst.OUTPUT_DIR, inst.SAVED_TAGS_FILE_NAME{i});
+                inst.TAGGED_DATA(i).save_to_file(fn);
+            end
+            % here we effectively save the tag data twice - well, not a big
+            % deal really
+            if ~tags_only
+                fn = fullfile(inst.OUTPUT_DIR, inst.SAVED_FILE_NAME);
+                SAVED_CONFIGURATION = inst;
+                save(fn, 'SAVED_CONFIGURATION');
+                clear('SAVED_CONFIGURATION');
+            end
+        end                
         
         function set_tags(inst, tags)
             inst.TAGS = tags;
@@ -194,7 +209,7 @@ classdef base_config < handle
                 inst.FEATURES(i).set_parameters(inst);
             end
             for i = 1:length(inst.DATA_REPRESENTATIONS)
-                inst.FEATURES(i).set_parameters(inst);
+                inst.DATA_REPRESENTATIONS(i).set_parameters(inst);
             end
             if ~isempty(inst.SEGMENTATION_FUNCTION)
                 inst.SEGMENTATION_FUNCTION.set_parameters(inst);
@@ -212,16 +227,79 @@ classdef base_config < handle
                 end
             end
         end
+
+        function load_trajectories_cached(inst, path, varargin)        
+            % see if we have them cached
+            cache_dir = globals.CACHE_DIRECTORY;
+            
+            % find a unique id for the directory contents by hashing all the file
+            % names / directories within it        
+            id = 0;
+            files = dir(path);
+            for fi = 1:length(files)
+                id = hash_combine(id, hash_value(files(fi).name));
+            end
+            
+            fn = fullfile(cache_dir, ['trajetories_', num2str(id), '.mat']);
+            if exist(fn, 'file')            
+                load(fn);
+                inst.set_trajectories(traj);
+            else
+                % have to load them
+                inst.load_data(path, varargin{:});
+                traj = inst.TRAJECTORIES;
+            
+                % save for next time        
+                save(fn, 'traj');
+            end
+            
+            % see if we want to segment them
+            if ~isempty(inst.SEGMENTATION_FUNCTION)        
+                % see if cached            
+                id = hash_combine(id, inst.SEGMENTATION_FUNCTION.hash_value);             
+                fn = fullfile(cache_dir, ['segments_', num2str(id), '.mat']);
+                if exist(fn, 'file')            
+                    load(fn);                
+                else                        
+                    nmin = inst.property('SEGMENTATION_MINIMUM_SEGMENTS', 2);
+                    seg = inst.TRAJECTORIES.partition( inst.SEGMENTATION_FUNCTION, nmin, varargin{:} );           
+                    save(fn, 'seg');
+                end
+                inst.set_trajectories(seg);
+            end            
+        end
+        
+        function tags = tags_of_type(inst, tag_type)
+            if tag_type == base_config.TAG_TYPE_ALL
+                tags = inst.TAGS;
+            else
+                tags = [];
+                for i = 1:length(inst.TAGS)
+                    if inst.TAGS(i).type == tag_type
+                        tags = [tags, inst.TAGS(i)];
+                    end
+                end
+            end                           
+        end
     end
     
     methods(Static)
         function inst = load_from_file(fn)
             load(fn);
-            if ~exist('SAVED_CONFIGURATION')
+            if ~exist('SAVED_CONFIGURATION', 'var')
                 error('Invalid file');
             end
             inst = SAVED_CONFIGURATION;
             clear('SAVED_CONFIGURATION');
+            
+            % see if we have saved tag files -> these might be newer since
+            % they are saved more often
+            for i = 1:length(inst.SAVED_TAGS_FILE_NAME)
+                fn = fullfile(inst.OUTPUT_DIR, inst.SAVED_TAGS_FILE_NAME{i});                    
+                if exist(fn, 'file')
+                    inst.TAGGED_DATA(i).load_from_file(fn);
+                end
+            end
         end
     end
 end
