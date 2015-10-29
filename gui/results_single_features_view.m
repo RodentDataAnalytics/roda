@@ -22,7 +22,7 @@ classdef results_single_features_view < handle
         end
         
         function update(inst)            
-            n = length(inst.main_window.features);
+            n = length(inst.main_window.config.SELECTED_FEATURES);
             if isempty(inst.grid)                
                 inst.grid = uiextras.Grid('Parent', inst.window);
                 inst.controls_box = uiextras.HBox('Parent', inst.window);
@@ -65,8 +65,7 @@ classdef results_single_features_view < handle
                 end
                 for i = 1:nr*nc
                     if i <= n
-                        feat = inst.main_window.config.FEATURES{inst.main_window.features(i)};
-                        inst.panels = [inst.panels, uiextras.BoxPanel('Parent', inst.grid, 'Title', feat{2})];
+                        inst.panels = [inst.panels, uiextras.BoxPanel('Parent', inst.grid, 'Title', inst.main_window.config.SELECTED_FEATURES(i).description)];
                         hbox = uiextras.VBox('Parent', inst.panels(end));
                         inst.axis = [inst.axis, axes('Parent', hbox)];
                     else
@@ -101,7 +100,7 @@ classdef results_single_features_view < handle
                 traj = inst.main_window.traj;                
             end
             
-            feat_val = traj.compute_features(inst.main_window.features);                
+            feat_val = traj.compute_features(inst.main_window.config.SELECTED_FEATURES);                
             groups = arrayfun( @(t) t.group, traj.items);       
             trials = arrayfun( @(t) t.trial, traj.items);                       
             types = arrayfun( @(t) t.trial_type, traj.items);
@@ -113,7 +112,7 @@ classdef results_single_features_view < handle
                 sel0 = ones(1, traj.count);                
             end
             
-            for i = 1:length(inst.main_window.features)                  
+            for i = 1:length(inst.main_window.config.SELECTED_FEATURES)                  
                 % store values for possible later significance test            
                 vals = {};
                 set(inst.main_window.window, 'currentaxes', inst.axis(i));

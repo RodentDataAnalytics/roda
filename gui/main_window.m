@@ -2,10 +2,7 @@ classdef main_window < handle
     %MAIN_WINDOW Summary of this class goes here
     %   Detailed explanation goes here    
     properties(GetAccess = 'public', SetAccess = 'protected')                
-        features = [];  
         features_values = [];
-        features_display = [];
-        features_cluster = [];
         selection = [];
         config = [];
         % GUI elements
@@ -40,11 +37,8 @@ classdef main_window < handle
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout/Patch'));
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/cm_and_cb_utilities'));
             
-            [inst.features_display, inst.features_cluster, inst.selection, inst.reference_results, name] = process_options(varargin, ...
-                        'Features', cfg.DEFAULT_FEATURE_SET, ...
-                        'ClusteringFeatures', cfg.CLUSTERING_FEATURE_SET, ...
-                        'UserSelection', [], 'ReferenceClassification', [], ...
-                        'Name', 'Trajectories tagging' ...
+            [inst.selection, inst.reference_results] = process_options(varargin, ...
+                        'UserSelection', [], 'ReferenceClassification', [] ...
             );
             
             % read labels if we already have something
@@ -52,18 +46,10 @@ classdef main_window < handle
             inst.traj = inst.config.TRAJECTORIES;
             inst.traj_labels = inst.config.TAGGED_DATA(1);         
             
-            %% compute features
-            
-            % combine display + clustering features
-            if isscalar(inst.features_cluster)
-                inst.features = inst.features_display;
-            else
-                inst.features = [inst.features_cluster, setdiff(inst.features_display, inst.features_cluster)];
-            end
-            
+            %% compute features                       
             h = waitbar(0, 'Computing features...', 'CreateCancelBtn', 'setappdata(gcbf, ''cancel'', 1);');
             setappdata(h, 'cancel', 0);            
-            inst.features_values = inst.traj.compute_features(inst.features, ...             
+            inst.features_values = inst.traj.compute_features(inst.config.SELECTED_FEATURES, ...             
                 'ProgressCallback', ...
                 @(mess, prog) return2nd(waitbar(prog, h, mess), getappdata(h, 'cancel')) ...
                 );
@@ -105,6 +91,9 @@ classdef main_window < handle
         end        
         
         function update(inst, tabnr)
+            set(inst.window, 'pointer', 'watch');
+            drawnow;
+            
             switch tabnr
                 case 1 % show features
                     inst.labels_view.update;
@@ -114,7 +103,8 @@ classdef main_window < handle
                     inst.results_view.update;                
                 otherwise
                     error('Ehm, seriously?');
-            end                        
+            end
+            set(inst.window, 'pointer', 'arrow');            
         end 
         
         function set_clustering_results(inst, res)

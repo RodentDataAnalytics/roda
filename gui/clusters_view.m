@@ -43,9 +43,8 @@ classdef clusters_view < handle
                 
                 % create other controls            
                 feat = {};
-                for i = 1:length(inst.main_window.features)
-                    att = inst.main_window.config.FEATURES{inst.main_window.features(i)};
-                    feat = [feat, att{2}];
+                for i = 1:length(inst.main_window.config.SELECTED_FEATURES)
+                    feat = [feat, inst.main_window.config.SELECTED_FEATURES(i).description];
                 end
                 
                 uicontrol('Parent', inst.controls_box, 'Style', 'text', 'String', 'Feature 1:');            
@@ -128,11 +127,9 @@ classdef clusters_view < handle
                         
                         hold on;
                     end                    
-                end
-                att = inst.main_window.config.FEATURES{inst.main_window.features(comb(idx, 1))};
-                xlabel(att{2});
-                att = inst.main_window.config.FEATURES{inst.main_window.features(comb(idx, 2))};
-                ylabel(att{2});                    
+                end                
+                xlabel(inst.main_window.config.SELECTED_FEATURES(comb(idx, 1)).description);
+                ylabel(inst.main_window.config.SELECTED_FEATURES(comb(idx, 2)).description);                    
                 idx = idx + 1;             
             end
         end   

@@ -93,9 +93,9 @@ classdef cluster_prototypes_view < handle
         function update_plots(inst, source, event_data) 
             npca = inst.main_window.config.property('NUMBER_FEATURES_PCA', 0);
             if npca > 0
-                feat_val = inst.main_window.traj.compute_features_pca(inst.main_window.features_cluster, inst.parent.num_features);
+                feat_val = inst.main_window.traj.compute_features_pca(inst.main_window.config.CLUSTERING_FEATURES, inst.parent.num_features);
             else
-                feat_val = inst.main_window.traj.compute_features(inst.main_window.features_cluster);           
+                feat_val = inst.main_window.traj.compute_features(inst.main_window.config.CLUSTERING_FEATURES);           
             end
             
             for idx = 1:length(inst.axis)                                                                

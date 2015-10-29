@@ -1,0 +1,261 @@
+<deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
+  <configuration build-checksum="4237303183" file="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis.prj" location="C:\Users\Tiago\code\mwm_trajectories" name="BehaviourAnalysis" preferred-package-location="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
+    <param.appname>BehaviourAnalysis</param.appname>
+    <param.icon />
+    <param.icons />
+    <param.version>1.0</param.version>
+    <param.authnamewatermark>Tiago Gehring</param.authnamewatermark>
+    <param.email>tiagogehring@gmail.com</param.email>
+    <param.company />
+    <param.summary />
+    <param.description />
+    <param.screenshot />
+    <param.guid />
+    <param.installpath.string>\BehaviourAnalysis\</param.installpath.string>
+    <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
+    <param.logo />
+    <param.install.notes />
+    <param.intermediate>${PROJECT_ROOT}\BehaviourAnalysis\for_testing</param.intermediate>
+    <param.output>${PROJECT_ROOT}\BehaviourAnalysis\for_redistribution</param.output>
+    <param.user.defined.mcr.options />
+    <param.embed.ctf>true</param.embed.ctf>
+    <param.server.ctf>${PROJECT_ROOT}\BehaviourAnalysis\for_testing\.ctf</param.server.ctf>
+    <param.server.readme>${PROJECT_ROOT}\BehaviourAnalysis\for_testing\readme.txt</param.server.readme>
+    <param.target.type>subtarget.standalone</param.target.type>
+    <param.support.packages />
+    <param.web.mcr>false</param.web.mcr>
+    <param.package.mcr>true</param.package.mcr>
+    <param.no.mcr>false</param.no.mcr>
+    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
+    <param.windows.command.prompt>true</param.windows.command.prompt>
+    <param.create.log>true</param.create.log>
+    <param.log.file>BehaviourAnalysis.log</param.log.file>
+    <unset>
+      <param.icon />
+      <param.icons />
+      <param.version />
+      <param.company />
+      <param.summary />
+      <param.description />
+      <param.screenshot />
+      <param.guid />
+      <param.installpath.string />
+      <param.installpath.combo />
+      <param.logo />
+      <param.install.notes />
+      <param.intermediate />
+      <param.output />
+      <param.user.defined.mcr.options />
+      <param.embed.ctf />
+      <param.server.ctf />
+      <param.server.readme />
+      <param.target.type />
+      <param.support.packages />
+      <param.no.mcr />
+      <param.web.mcr.name />
+      <param.package.mcr.name />
+      <param.no.mcr.name />
+      <param.windows.command.prompt />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\start_gui.m</file>
+    </fileset.main>
+    <fileset.resources>
+      <file>${MATLAB_ROOT}\toolbox\matlab\demos\watchoff.m</file>
+      <file>${MATLAB_ROOT}\toolbox\matlab\demos\watchon.m</file>
+      <file>${PROJECT_ROOT}\cluster_to_class.m</file>
+      <file>${PROJECT_ROOT}\clustering_cv_results.m</file>
+      <file>${PROJECT_ROOT}\clustering_entropy.m</file>
+      <file>${PROJECT_ROOT}\clustering_purity.m</file>
+      <file>${PROJECT_ROOT}\clustering_results.m</file>
+      <file>${PROJECT_ROOT}\config\.\base_config.m</file>
+      <file>${PROJECT_ROOT}\config\.\config_place_avoidance_silver.m</file>
+      <file>${PROJECT_ROOT}\config\base_config.m</file>
+      <file>${PROJECT_ROOT}\config\config_place_avoidance_silver.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\config_place_avoidance.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\segmentation_place_avoidance.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_angular_distance_shock.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_arena_coord.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_count_events.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_entrances_shock.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_event_radius.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_events.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_first_event.m</file>
+      <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_max_inter_event.m</file>
+      <file>${PROJECT_ROOT}\configurations.m</file>
+      <file>${PROJECT_ROOT}\confusion_matrix.m</file>
+      <file>${PROJECT_ROOT}\data_representation.m</file>
+      <file>${PROJECT_ROOT}\data_representation\trajectory_points.m</file>
+      <file>${PROJECT_ROOT}\data_representation\trajectory_speed.m</file>
+      <file>${PROJECT_ROOT}\data_representation\trajectory_speed_impl.m</file>
+      <file>${PROJECT_ROOT}\data_representation\trajectory_speed_profile.m</file>
+      <file>${PROJECT_ROOT}\extern\arrow.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cbfit.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cbfreeze.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cbhandle.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cblabel.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cbunits.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cm_and_cb_utilities.png</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cmapping.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cmfit.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cmjoin.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\cmlines.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\Contents.m</file>
+      <file>${PROJECT_ROOT}\extern\cm_and_cb_utilities\license.txt</file>
+      <file>${PROJECT_ROOT}\extern\dpsimplify.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Box.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\BoxPanel.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\ButtonBox.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\calculatePixelSizes.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\callCallback.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\CardPanel.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\ChildEvent.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Container.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Contents.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\DecoratedPanel.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Empty.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\findArg.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\get.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Grid.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\GridFlex.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\HBox.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\HBoxFlex.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\HButtonBox.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\interpretColor.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\loadLayoutIcon.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\makeFlexDivider.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\MousePointerHandler.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Panel.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\panelClose.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\panelDock.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\panelHelp.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\panelMaximize.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\panelMinimize.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\panelUndock.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_Background_NotSelected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_Background_Selected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_NoEdge_NotSelected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_NoEdge_Selected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_NotSelected_NoEdge.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_NotSelected_NotSelected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_NotSelected_Selected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_Selected_NoEdge.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\Resources\tab_Selected_NotSelected.png</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\set.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\TabPanel.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\unset.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\VBox.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\VBoxFlex.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\+uiextras\VButtonBox.m</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\Patch\getpixelposition.p</file>
+      <file>${PROJECT_ROOT}\extern\GUILayout\Patch\isHGUsingMATLABClasses.p</file>
+      <file>${PROJECT_ROOT}\extern\iff.m</file>
+      <file>${PROJECT_ROOT}\extern\javaaddpathstatic.m</file>
+      <file>${PROJECT_ROOT}\extern\process_options.m</file>
+      <file>${PROJECT_ROOT}\extern\robustcsvread.m</file>
+      <file>${PROJECT_ROOT}\extern\shadedErrorBar.m</file>
+      <file>${PROJECT_ROOT}\extern\weka\mpckmeans.m</file>
+      <file>${PROJECT_ROOT}\extern\weka\weka_init.m</file>
+      <file>${PROJECT_ROOT}\features\ellipse_parameters.m</file>
+      <file>${PROJECT_ROOT}\features\feature_transform.m</file>
+      <file>${PROJECT_ROOT}\features\min_enclosing_ellipsoid.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_angular_dispersion.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_average_speed.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_boundaries.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_cv_inner_radius.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_density.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_distance_platform.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_eccentricity.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_efficiency.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_focus.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_latency.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_length.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_longest_loop.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_mean_angle.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_radius.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_time_within_radius.m</file>
+      <file>${PROJECT_ROOT}\features\trajectory_variance_speed.m</file>
+      <file>${PROJECT_ROOT}\function_wrapper.m</file>
+      <file>${PROJECT_ROOT}\globals.m</file>
+      <file>${PROJECT_ROOT}\gui\classification_results_view.m</file>
+      <file>${PROJECT_ROOT}\gui\cluster_prototypes_view.m</file>
+      <file>${PROJECT_ROOT}\gui\clustering_statistics_view.m</file>
+      <file>${PROJECT_ROOT}\gui\clustering_view.m</file>
+      <file>${PROJECT_ROOT}\gui\clusters_view.m</file>
+      <file>${PROJECT_ROOT}\gui\edit_tags_window.m</file>
+      <file>${PROJECT_ROOT}\gui\label_trajectories_view.m</file>
+      <file>${PROJECT_ROOT}\gui\main_window.m</file>
+      <file>${PROJECT_ROOT}\gui\new_tag_window.m</file>
+      <file>${PROJECT_ROOT}\gui\results_classes_evolution_view.m</file>
+      <file>${PROJECT_ROOT}\gui\results_correlation_view.m</file>
+      <file>${PROJECT_ROOT}\gui\results_features_evolution_view.m</file>
+      <file>${PROJECT_ROOT}\gui\results_full_trajectories.m</file>
+      <file>${PROJECT_ROOT}\gui\results_single_features_view.m</file>
+      <file>${PROJECT_ROOT}\gui\select_config_window.m</file>
+      <file>${PROJECT_ROOT}\gui\trajectory_detailed_classification.m</file>
+      <file>${PROJECT_ROOT}\segment_classes_distribution.m</file>
+      <file>${PROJECT_ROOT}\semisupervised_clustering.m</file>
+      <file>${PROJECT_ROOT}\tag.m</file>
+      <file>${PROJECT_ROOT}\tags_list.m</file>
+      <file>${PROJECT_ROOT}\trajectories.m</file>
+      <file>${PROJECT_ROOT}\trajectory.m</file>
+      <file>${PROJECT_ROOT}\trajectory_feature.m</file>
+      <file>${PROJECT_ROOT}\trajectory_segmentation_constant_len.m</file>
+      <file>${PROJECT_ROOT}\trajectory_simplify_impl.m</file>
+      <file>${PROJECT_ROOT}\utility\hash_combine.m</file>
+      <file>${PROJECT_ROOT}\utility\hash_value.m</file>
+      <file>${PROJECT_ROOT}\utility\home_directory.m</file>
+      <file>${PROJECT_ROOT}\utility\iff.m</file>
+      <file>${PROJECT_ROOT}\utility\property_list_replace.m</file>
+      <file>${PROJECT_ROOT}\utility\property_list_set_default.m</file>
+      <file>${PROJECT_ROOT}\utility\return2nd.m</file>
+    </fileset.resources>
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}\BehaviourAnalysis\for_testing" name="readme.txt" optional="true">C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\BehaviourAnalysis\for_testing" name="BehaviourAnalysis.exe" optional="false">C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing\BehaviourAnalysis.exe</file>
+      <file location="${PROJECT_ROOT}\BehaviourAnalysis\for_testing" name="splash.png" optional="false">C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing\splash.png</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2014a</root>
+      <toolboxes>
+        <toolbox name="matlabhdlcoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="matlabcoder" />
+      </toolboxes>
+      <toolbox>
+        <matlabhdlcoder>
+          <enabled>true</enabled>
+        </matlabhdlcoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>6.2</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

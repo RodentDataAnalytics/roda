@@ -28,9 +28,8 @@ classdef results_correlation_view < handle
                 set(inst.window, 'Sizes', [-1, 40]);
                 
                 feat = {};
-                for i = 1:length(inst.main_window.features)
-                    att = inst.main_window.config.FEATURES{inst.main_window.features(i)};
-                    feat = [feat, att{2}];
+                for i = 1:length(inst.main_window.config.SELECTED_FEATURES)                    
+                    feat = [feat, inst.main_window.config.SELECTED_FEATURES(i).description];
                 end
                 
                 % create other controls                            
@@ -89,28 +88,27 @@ classdef results_correlation_view < handle
             switch plt
                 case 1
                     % feature-feature                    
-                    feat_val = traj.compute_features(inst.main_window.features);  
+                    feat_val = traj.compute_features(inst.main_window.config.SELECTED_FEATURES);  
                     vals = corrcoef(feat_val(sel0 & inst.parent.trials(trials) == 1 & types == inst.parent.trial_type, :));
                         
-                    for fi = 1:length(inst.main_window.features)
+                    for fi = 1:length(inst.main_window.config.SELECTED_FEATURES)
                         % normalize feature                        
-                        att = inst.main_window.config.FEATURES{inst.main_window.features(fi)};
-                        ver_str = [ver_str, att{2}];
-                        hor_str = [hor_str, att{2}];
+                        feat = inst.main_window.config.SELECTED_FEATURES(fi);
+                        ver_str = [ver_str, [feat.description ' [' feat.abbreviation ']']];
+                        hor_str = [hor_str, feat.abbreviation];
                     end                    
                 case 2            
                     % features-clusters                    
                     if ~isempty(inst.main_window.clustering_results)
                         vals = zeros(length(inst.main_window.features), inst.main_window.clustering_results.nclusters);
-                        for fi = 1:length(inst.main_window.features)
-                            feat_val = traj.compute_features(inst.main_window.features(fi));                            
+                        for fi = 1:length(inst.main_window.config.SELECTED_FEATURES)
+                            feat_val = traj.compute_features(inst.main_window.config.SELECTED_FEATURES(fi));                            
                             for ic = 1:inst.main_window.clustering_results.nclusters                                               
                                 vals(fi, ic) = mean(feat_val(sel0 & inst.main_window.clustering_results.cluster_index == ic & inst.parent.trials(trials) == 1 & types == inst.parent.trial_type));
                             end
                             % normalize feature
-                            vals(fi, :) = vals(fi, :) ./ repmat(norm(vals(fi, :)), 1, size(vals, 2));                      
-                            att = inst.main_window.config.FEATURES{inst.main_window.features(fi)};
-                            ver_str = [ver_str, att{2}];
+                            vals(fi, :) = vals(fi, :) ./ repmat(norm(vals(fi, :)), 1, size(vals, 2));                                                  
+                            ver_str = [ver_str, inst.main_window.config.SELECTED_FEATURES(fi).description];
                         end
                        hor_str = arrayfun( @(idx) sprintf('Cluster %d', idx), 1:inst.main_window.clustering_results.nclusters, 'UniformOutput', 0);                       
                     end           

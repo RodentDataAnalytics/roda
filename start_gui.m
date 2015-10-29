@@ -1,6 +1,7 @@
 %% Initialize the WEKA library (java stuff)
 % somewhere in the loading procedure the global variables are cleared and
 % this messes up everything so don't call it more than once
+addpath(fullfile(fileparts(mfilename('fullpath')),'/extern/'));
 addpath(fullfile(fileparts(mfilename('fullpath')),'/extern/weka'));
 weka_init;
 % add needed folders to the path

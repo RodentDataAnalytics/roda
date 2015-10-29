@@ -27,9 +27,8 @@ classdef results_features_evolution_view < handle
                 set(inst.window, 'Sizes', [-1, 40]);
                 
                 feat = {};
-                for i = 1:length(inst.main_window.features)
-                    att = inst.main_window.config.FEATURES{inst.main_window.features(i)};
-                    feat = [feat, att{2}];
+                for i = 1:length(inst.main_window.config.SELECTED_FEATURES)
+                    feat = [feat, inst.main_window.config.SELECTED_FEATURES(i).description];
                 end
                 
                 % create other controls            
@@ -37,7 +36,7 @@ classdef results_features_evolution_view < handle
                 inst.feature_combo = uicontrol('Parent', inst.controls_box, 'Style', 'popupmenu', 'String', feat, 'Callback', @inst.update_plots);
                 
                 uicontrol('Parent', inst.controls_box, 'Style', 'text', 'String', 'Plot:');            
-                inst.plot_combo = uicontrol('Parent', inst.controls_box, 'Style', 'popupmenu', 'String', {'Lines + 95% CI', 'Lines', 'Box-plot'}, 'Callback', @inst.update_plots);
+                inst.plot_combo = uicontrol('Parent', inst.controls_box, 'Style', 'popupmenu', 'String', {'Lines + 95% CI', 'Lines'}, 'Callback', @inst.update_plots);
                 set(inst.controls_box, 'Sizes', [100, 200, 100, 200]);
                 
                 state = 'on';
@@ -69,7 +68,7 @@ classdef results_features_evolution_view < handle
                 sel0 = ones(1, traj.count);                
             end            
             
-            feat_val = traj.compute_features(inst.main_window.features(feat));                
+            feat_val = traj.compute_features(inst.main_window.config.SELECTED_FEATURES(feat));                
             groups = arrayfun( @(t) t.group, traj.items);       
             trials = arrayfun( @(t) t.trial, traj.items);         
             if inst.parent.trial_type > 0
@@ -130,7 +129,8 @@ classdef results_features_evolution_view < handle
                         % average each value                        
                         plot( 1:length(vals_trial) ....
                             , arrayfun( @(idx) mean(vals_trial{idx}), 1:length(vals_trial)) ...
-                            , '-', 'Color', inst.parent.groups_colors(g, :), 'LineWidth', 2, 'XTickLabel', xlbls);                                                        
+                            , '-', 'Color', inst.parent.groups_colors(g, :), 'LineWidth', 2);    
+                        set(gca, 'XTick', 1:length(vals_trial), 'XTickLabel', xlbls);
                     case 3                        
                 end
                 

@@ -90,8 +90,8 @@ classdef label_trajectories_view < handle
                 inst.status_text = uicontrol('Parent', stat_box, 'Style', 'text', 'String', '');
                 % feature sorting control
                 sortstr = {'** none **', '** distance to centre (max) **', '** distance to centre (euclidean) **', '** combined **', '** random **' };
-                for i = 1:length(inst.parent.features) % have to do this way because of stupid matlab        
-                    sortstr = [sortstr, inst.parent.features(i).description];
+                for i = 1:length(inst.parent.config.SELECTED_FEATURES) % have to do this way because of stupid matlab        
+                    sortstr = [sortstr, inst.parent.config.SELECTED_FEATURES(i).description];
                 end
                 sort_box = uiextras.HBox('Parent', filter_box);
                 uicontrol('Parent', sort_box, 'Style', 'text', 'String', 'Sort:');        
@@ -426,6 +426,9 @@ classdef label_trajectories_view < handle
         end
 
         function show_trajectories(inst) 
+            set(inst.parent.window, 'pointer', 'watch');
+            drawnow;
+            
             [nx, ny] = inst.number_of_views;
             for i = 1:nx*ny
                 if inst.cur + i < length(inst.filter)
@@ -490,11 +493,11 @@ classdef label_trajectories_view < handle
 
                     % update the status text with feature values
                     str = '';
-                    for j = 1:length(inst.parent.features)
+                    for j = 1:length(inst.parent.config.SELECTED_FEATURES)
                         if j > 1
                             str = strcat(str, ' | ');
                         end                        
-                        str = strcat(str, sprintf('%s: %.4f', inst.parent.features(j).abbreviation, inst.parent.features_values(traj_idx, j)));                    
+                        str = strcat(str, sprintf('%s: %.4f', inst.parent.config.SELECTED_FEATURES(j).abbreviation, inst.parent.features_values(traj_idx, j)));                    
                     end
                     set(inst.desc_handles(i), 'String', str);
 
@@ -556,6 +559,7 @@ classdef label_trajectories_view < handle
                 end
             end
             inst.update_status;
+            set(inst.parent.window, 'pointer', 'arrow');           
         end   
 
         function save_data(inst)           
@@ -750,7 +754,7 @@ classdef label_trajectories_view < handle
 
         function layout_change_callback(inst, source, eventdata)
             % save current properties
-            set(inst.parent.window, 'pointer', 'watch')
+            set(inst.parent.window, 'pointer', 'watch');
             drawnow;
             inst.parent.config.set_property('BROWSE_SEGMENTS_NX', get(inst.xviews_combo, 'value'));
             inst.parent.config.set_property('BROWSE_SEGMENTS_NY', get(inst.yviews_combo, 'value'));
@@ -774,7 +778,7 @@ classdef label_trajectories_view < handle
             
             inst.create_views;
             inst.show_trajectories;
-            set(inst.parent.window, 'pointer', 'arrow')            
+            set(inst.parent.window, 'pointer', 'arrow');            
         end
 
         function sorting_callback(inst, source, eventdata)

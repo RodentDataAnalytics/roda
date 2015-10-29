@@ -82,8 +82,9 @@ classdef base_config < handle
         TRAJECTORIES = [];
         TAG_TYPES = [];
         
-        DEFAULT_FEATURE_SET = [];
-        CLUSTERING_FEATURE_SET = [];
+        DISPLAY_FEATURES = [];
+        CLUSTERING_FEATURES = [];
+        SELECTED_FEATURES = [];
         
         SESSIONS = 1;  
         TRIALS_PER_SESSION = 1; 
@@ -125,8 +126,8 @@ classdef base_config < handle
             inst.TAGS = [base_config.DEFAULT_TAGS, extr_tags];
             inst.DATA_REPRESENTATIONS = [base_config.DEFAULT_DATA_REPRESENTATIONS, extr_data_repr];
             inst.FEATURES = [base_config.DEFAULT_FEATURES, extr_features];
-            inst.CLUSTERING_FEATURE_SET = clus_feat_set;            
-            inst.DEFAULT_FEATURE_SET = feat_set;                        
+            inst.CLUSTERING_FEATURES = clus_feat_set;            
+            inst.DISPLAY_FEATURES = feat_set;                        
             inst.TRIALS = sum(inst.TRIALS_PER_SESSION);
             inst.GROUPS = length(inst.GROUPS_DESCRIPTION);  
             
@@ -135,6 +136,9 @@ classdef base_config < handle
             for i = 1:2:length(prop)
                 inst.set_property(prop{i}, prop{i + 1});
             end            
+            
+             % combine display + clustering features           
+            inst.SELECTED_FEATURES = [inst.CLUSTERING_FEATURES, setdiff(inst.DISPLAY_FEATURES, inst.CLUSTERING_FEATURES)];                        
             
             inst.SAVED_FILE_NAME = [inst.DESCRIPTION '.mat'];            
        end

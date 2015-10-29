@@ -37,7 +37,7 @@ classdef clustering_view < handle
             if isempty(inst.tab_box)
                 inst.tab_box = uiextras.VBox('Parent', inst.window);
                 inst.ctrl_box = uiextras.HBox('Parent', inst.window);
-                set(inst.window, 'Sizes', [-1 50] )
+                set(inst.window, 'Sizes', [-1 70] )
                 
                 % clustering controls
                 hbox = uiextras.HBox('Parent', inst.ctrl_box);
@@ -67,7 +67,7 @@ classdef clustering_view < handle
                 %% clusters max
                 hbox = uiextras.HBox('Parent', vbox_ctrls);
                 uicontrol('Parent', hbox, 'Style', 'text', 'String', '# of features:');        
-                vals = arrayfun( @(x) sprintf('%d', x), 1:length(inst.parent.features_cluster), 'UniformOutput', 0);                
+                vals = arrayfun( @(x) sprintf('%d', x), 1:length(inst.parent.config.CLUSTERING_FEATURES), 'UniformOutput', 0);                
                 inst.num_features_combo = uicontrol('Parent', hbox, 'Style', 'popupmenu', 'String', vals);                                         
                 set(hbox, 'Sizes', [90 80] );                
                 set(inst.num_features_combo, 'value', 4);                   
@@ -99,6 +99,8 @@ classdef clustering_view < handle
         end
         
         function update_child(inst, tabnr)
+            set(inst.parent.window, 'pointer', 'watch');
+            drawnow;
             vis = get(inst.window, 'Visible');            
                                     
             if strcmp(vis, 'on')                
@@ -113,6 +115,7 @@ classdef clustering_view < handle
                         error('Ehm, seriously?');
                 end
             end            
+            set(inst.parent.window, 'pointer', 'arrow');            
         end
         
         function cluster_callback(inst, source, eventdata) 
@@ -139,7 +142,7 @@ classdef clustering_view < handle
             
             classif = inst.parent.traj.classifier( ...
                 inst.parent.config ...
-              , inst.parent.features_cluster ...
+              , inst.parent.config.CLUSTERING_FEATURES ...
               , inst.parent.traj_labels ...              
               , inst.parent.config.TAGS(find(tag_type == base_config.TAG_TYPE_BEHAVIOUR_CLASS)) ...
               , inst.num_features ...

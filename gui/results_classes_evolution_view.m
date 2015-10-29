@@ -159,6 +159,7 @@ classdef results_classes_evolution_view < handle
             else
                 sel0 = ones(1, inst.main_window.traj.parent.count);                
             end
+            sel0 = intersect(inst.main_window.traj.segmented_index, sel0);
             
             for t = 1:inst.main_window.config.TRIALS
                 grp_idx = 0;                

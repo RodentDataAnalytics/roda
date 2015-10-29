@@ -1,0 +1,87 @@
+ant:
+<ant>
+  <mkdir dir="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution" />
+  <mkdir dir="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing" />
+</ant>
+mcc -C -o BehaviourAnalysis -W WinMain:BehaviourAnalysis -T link:exe -d C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing -R '-logfile,BehaviourAnalysis.log' -v C:\Users\Tiago\code\mwm_trajectories\start_gui.m -a C:\Users\Tiago\code\mwm_trajectories\extern\arrow.m -a C:\Users\Tiago\code\mwm_trajectories\config\base_config.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Box.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\BoxPanel.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\ButtonBox.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\calculatePixelSizes.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\callCallback.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\CardPanel.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cbfit.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cbfreeze.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cbhandle.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cblabel.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cbunits.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\ChildEvent.m -a C:\Users\Tiago\code\mwm_trajectories\gui\classification_results_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\cluster_prototypes_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\clustering_statistics_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\clustering_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\clusters_view.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cm_and_cb_utilities.png -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cmapping.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cmfit.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cmjoin.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\cmlines.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\config_place_avoidance.m -a C:\Users\Tiago\code\mwm_trajectories\config\config_place_avoidance_silver.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Container.m -a Contents -a Contents -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\DecoratedPanel.m -a C:\Users\Tiago\code\mwm_trajectories\extern\dpsimplify.m -a C:\Users\Tiago\code\mwm_trajectories\gui\edit_tags_window.m -a C:\Users\Tiago\code\mwm_trajectories\features\ellipse_parameters.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Empty.m -a C:\Users\Tiago\code\mwm_trajectories\features\feature_transform.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\findArg.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\get.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\Patch\getpixelposition.p -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Grid.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\GridFlex.m -a C:\Users\Tiago\code\mwm_trajectories\utility\hash_combine.m -a C:\Users\Tiago\code\mwm_trajectories\utility\hash_value.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\HBox.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\HBoxFlex.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\HButtonBox.m -a C:\Users\Tiago\code\mwm_trajectories\utility\home_directory.m -a C:\Users\Tiago\code\mwm_trajectories\extern\iff.m -a C:\Users\Tiago\code\mwm_trajectories\utility\iff.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\interpretColor.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\Patch\isHGUsingMATLABClasses.p -a C:\Users\Tiago\code\mwm_trajectories\extern\javaaddpathstatic.m -a C:\Users\Tiago\code\mwm_trajectories\gui\label_trajectories_view.m -a C:\Users\Tiago\code\mwm_trajectories\extern\cm_and_cb_utilities\license.txt -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\loadLayoutIcon.m -a C:\Users\Tiago\code\mwm_trajectories\gui\main_window.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\makeFlexDivider.m -a C:\Users\Tiago\code\mwm_trajectories\features\min_enclosing_ellipsoid.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\MousePointerHandler.m -a C:\Users\Tiago\code\mwm_trajectories\extern\weka\mpckmeans.m -a C:\Users\Tiago\code\mwm_trajectories\gui\new_tag_window.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Panel.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\panelClose.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\panelDock.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\panelHelp.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\panelMaximize.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\panelMinimize.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\panelUndock.png -a C:\Users\Tiago\code\mwm_trajectories\utility\property_list_replace.m -a C:\Users\Tiago\code\mwm_trajectories\utility\property_list_set_default.m -a C:\Users\Tiago\code\mwm_trajectories\gui\results_classes_evolution_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\results_correlation_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\results_features_evolution_view.m -a C:\Users\Tiago\code\mwm_trajectories\gui\results_full_trajectories.m -a C:\Users\Tiago\code\mwm_trajectories\gui\results_single_features_view.m -a C:\Users\Tiago\code\mwm_trajectories\utility\return2nd.m -a C:\Users\Tiago\code\mwm_trajectories\segment_classes_distribution.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\segmentation_place_avoidance.m -a C:\Users\Tiago\code\mwm_trajectories\gui\select_config_window.m -a C:\Users\Tiago\code\mwm_trajectories\semisupervised_clustering.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\set.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_Background_NotSelected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_Background_Selected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_NoEdge_NotSelected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_NoEdge_Selected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_NotSelected_NoEdge.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_NotSelected_NotSelected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_NotSelected_Selected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_Selected_NoEdge.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources\tab_Selected_NotSelected.png -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\TabPanel.m -a C:\Users\Tiago\code\mwm_trajectories\trajectories.m -a C:\Users\Tiago\code\mwm_trajectories\trajectory.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_angular_dispersion.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_angular_distance_shock.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_arena_coord.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_average_speed.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_boundaries.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_count_events.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_cv_inner_radius.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_density.m -a C:\Users\Tiago\code\mwm_trajectories\gui\trajectory_detailed_classification.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_distance_platform.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_eccentricity.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_efficiency.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_entrances_shock.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_event_radius.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_events.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_first_event.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_focus.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_latency.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_length.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_longest_loop.m -a C:\Users\Tiago\code\mwm_trajectories\config\place_avoidance\trajectory_max_inter_event.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_mean_angle.m -a C:\Users\Tiago\code\mwm_trajectories\data_representation\trajectory_points.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_radius.m -a C:\Users\Tiago\code\mwm_trajectories\trajectory_segmentation_constant_len.m -a C:\Users\Tiago\code\mwm_trajectories\trajectory_simplify_impl.m -a C:\Users\Tiago\code\mwm_trajectories\data_representation\trajectory_speed.m -a C:\Users\Tiago\code\mwm_trajectories\data_representation\trajectory_speed_impl.m -a C:\Users\Tiago\code\mwm_trajectories\data_representation\trajectory_speed_profile.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_time_within_radius.m -a C:\Users\Tiago\code\mwm_trajectories\features\trajectory_variance_speed.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\unset.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\VBox.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\VBoxFlex.m -a C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\VButtonBox.m -a C:\Users\Tiago\code\mwm_trajectories\extern\weka\weka_init.m 
+Compiler version: 5.1 (R2014a)
+Dependency analysis by REQUIREMENTS.
+[Warning: Package directories not allowed in MATLAB path:
+C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras] 
+[> In path at 33
+  In requirements at 156] 
+[Warning: Package directories not allowed in MATLAB path:
+C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\+uiextras\Resources] 
+[> In path at 33
+  In requirements at 156] 
+[Warning: Requirements cannot analyze P-code unless the user provides a
+corresponding M-code along with the P-code in the same folder. The dependencies
+of
+C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\Patch\getpixelposition.p
+may not be included in the completion because its corresponding M-code cannot
+be found by REQUIREMENTS.] 
+[> In MatlabSymbol>MatlabSymbol.findCorrespondentMCode at 975
+  In Completion>Completion.initializeRootSet at 1263
+  In Completion>Completion.Completion at 1860
+  In requirements at 182] 
+[Warning: Requirements cannot analyze P-code unless the user provides a
+corresponding M-code along with the P-code in the same folder. The dependencies
+of
+C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\Patch\isHGUsingMATLABClasses.p
+may not be included in the completion because its corresponding M-code cannot
+be found by REQUIREMENTS.] 
+[> In MatlabSymbol>MatlabSymbol.findCorrespondentMCode at 975
+  In Completion>Completion.initializeRootSet at 1263
+  In Completion>Completion.Completion at 1860
+  In requirements at 182] 
+[Warning: Requirements cannot analyze P-code unless the user provides a
+corresponding M-code along with the P-code in the same folder. The dependencies
+of
+C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\Patch\isHGUsingMATLABClasses.p
+may not be included in the completion because its corresponding M-code cannot
+be found by REQUIREMENTS.] 
+[> In MatlabSymbol>MatlabSymbol.findCorrespondentMCode at 975
+  In Completion>Completion.recordDependency at 703
+  In Completion>@(client,symbol)recordDependency(obj,client,symbol)
+  In MatlabInspector>MatlabInspector.recordDependency at 181
+  In MatlabInspector>MatlabInspector.evaluateSymbols at 390
+  In MatlabInspector>MatlabInspector.analyzeSymbols at 153
+  In Completion>Completion.findDependentFiles at 1057
+  In Completion>Completion.computeDependencies at 234
+  In Completion>Completion.computePartsList at 1581
+  In Completion>Completion.requirements at 1890
+  In requirements at 191] 
+[Warning: Requirements cannot analyze P-code unless the user provides a
+corresponding M-code along with the P-code in the same folder. The dependencies
+of
+C:\Users\Tiago\code\mwm_trajectories\extern\GUILayout\Patch\isHGUsingMATLABClasses.p
+may not be included in the completion because its corresponding M-code cannot
+be found by REQUIREMENTS.] 
+[> In MatlabSymbol>MatlabSymbol.findCorrespondentMCode at 975
+  In Completion>Completion.recordDependency at 703
+  In Completion>@(client,symbol)recordDependency(obj,client,symbol)
+  In MatlabInspector>MatlabInspector.recordDependency at 181
+  In MatlabInspector>MatlabInspector.evaluateSymbols at 390
+  In MatlabInspector>MatlabInspector.analyzeSymbols at 153
+  In Completion>Completion.findDependentFiles at 1057
+  In Completion>Completion.computeDependencies at 234
+  In Completion>Completion.computePartsList at 1581
+  In Completion>Completion.requirements at 1890
+  In requirements at 191] 
+[Warning: Adding path "C:\Users\Tiago\code\mwm_trajectories" to Compiler path
+instance.] 
+Parsing file "C:\Users\Tiago\code\mwm_trajectories\start_gui.m"
+	(Referenced from: "Compiler Command Line").
+Parsing file "C:\Program Files\MATLAB\R2014a\toolbox\compiler\deploy\deployprint.m"
+	(Referenced from: "Compiler Command Line").
+Parsing file "C:\Program Files\MATLAB\R2014a\toolbox\compiler\deploy\printdlg.m"
+	(Referenced from: "Compiler Command Line").
+Deleting 0 temporary MEX authorization files.
+Generating file "C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing\readme.txt".
+Packaging...
+Adding custom icon C:\Program Files\MATLAB\R2014a\toolbox\compiler\Resources\default_icon.ico to C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing\BehaviourAnalysis.exe.
+Attempting to embed the CTF archive into the application C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_testing\BehaviourAnalysis.exe.
+Finished embedding CTF archive. Deleting the external CTF archive.
+Creating the bundle...
+Self contained installer created at C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution\MyAppInstaller_mcr.exe.
+Packaging complete.
