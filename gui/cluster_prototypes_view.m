@@ -110,7 +110,7 @@ classdef cluster_prototypes_view < handle
                 
                 [~, min_dist] = sort(dist);
                                 
-                inst.main_window.traj.items(min_dist(1)).plot();
+                inst.main_window.traj.items(min_dist(1)).plot(inst.main_window.config);
                 
                 if inst.show_edge                    
                     % edge plots

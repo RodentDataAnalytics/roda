@@ -25,23 +25,24 @@ classdef label_trajectories_view < handle
         main_view_combo = [];
         main_view_dir_check = [];
         main_view_full_combo = [];
+        main_view_tol_combo = [];
         filter_prev_button = [];
         filter_next_button = [];
         sec_view_combos = [];
         sec_view_dir_check = [];
         sec_view_full_combos = [];           
+        sec_view_tol_combos = [];
         % other state        
         filter = [];        
         nitems_filter = 0;
         sorting = [];        
         simplify_level_prev = 0;
         data_repr_norm = [];
-        data_repr_off = [];
         segments_map = [];
         covering = [];
         diff_set = [];
         distr_status = [];
-        fiter_combo_valid = 0;
+        filter_combo_valid = 0;        
         % current trajectory index
         cur = 0;       
     end
@@ -76,14 +77,14 @@ classdef label_trajectories_view < handle
                 layout_panel = uiextras.BoxPanel('Parent', inst.ctrl_box, 'Title', 'Layout');
                 layout_box = uiextras.VBox('Parent', layout_panel);
 
-                set(inst.ctrl_box, 'Sizes', [300 75 -1 75 400]);
+                set(inst.ctrl_box, 'Sizes', [300 75 -1 75 550]);
                 % trajectories navigation
                 uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<-', 'Callback', {@inst.previous_callback});
-                uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->', 'Callback',{@inst.next_callback});    
-                uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<-', 'Callback',{@inst.previous2_callback});
-                uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>', 'Callback',{@inst.next2_callback});
-                uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<<-', 'Callback',{@inst.previous3_callback});
-                uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>>', 'Callback',{@inst.next3_callback});
+                uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->', 'Callback', {@inst.next_callback});    
+                uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<-', 'Callback', {@inst.previous2_callback});
+                uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>', 'Callback', {@inst.next2_callback});
+                uicontrol('Parent', lnav_box, 'Style', 'pushbutton', 'String', '<<<-', 'Callback', {@inst.previous3_callback});
+                uicontrol('Parent', rnav_box, 'Style', 'pushbutton', 'String', '->>>', 'Callback', {@inst.next3_callback});
 
                 % status text (middle)
                 inst.status_text = uicontrol('Parent', stat_box, 'Style', 'text', 'String', '');
@@ -112,11 +113,7 @@ classdef label_trajectories_view < handle
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'NY:');
                 inst.yviews_combo = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', {'1', '2', '3', '4', '5', '6'}, 'Callback', {@inst.layout_change_callback});      
                 set(inst.yviews_combo, 'value', inst.parent.config.property('BROWSE_SEGMENTS_NY', 2));
-                uicontrol('Parent', box, 'Style', 'text', 'String', 'Tol:');
-                tol_str = arrayfun( @(x) num2str(x), 1:25, 'UniformOutput', 0);
-                simplify_tol_handle = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', tol_str, 'Callback', {@inst.layout_change_callback});
-                set(simplify_tol_handle, 'value', 5);
-
+                
                 % build a list with all the possible data representations
                 strs = {};
                 for i = 1:length(inst.parent.config.DATA_REPRESENTATIONS)                    
@@ -128,20 +125,32 @@ classdef label_trajectories_view < handle
                     full_status = 'off';
                 end
                 strs = ['None', strs];
-                % 1st combo: main view
+                tol_str = arrayfun( @(x) num2str(x), 0:25, 'UniformOutput', 0);
+                                     
+                % 1st combo: main view                
                 box = uiextras.HBox('Parent', layout_box);    
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'Main:');
                 inst.main_view_combo = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', strs, 'Callback', {@inst.layout_change_callback}, 'Value', 2);        
+                set(inst.main_view_combo, 'Value', inst.parent.config.property('MAIN_VIEW_DATA_REPR', 2));
                 inst.main_view_dir_check = uicontrol('Parent', box, 'Style', 'checkbox', 'String', 'Vec.', 'Callback', {@inst.layout_change_callback});    
+                set(inst.main_view_dir_check, 'Value', inst.parent.config.property('MAIN_VIEW_VECTOR_FIELD', 0));
                 inst.main_view_full_combo = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', strs, 'Callback', {@inst.layout_change_callback}, 'Enable', full_status);
-                set(box, 'Sizes', [50, -1, 50, -1]);
+                set(inst.main_view_full_combo, 'Value', inst.parent.config.property('MAIN_VIEW_FULL_DATA_REPR', 1));                
+                uicontrol('Parent', box, 'Style', 'text', 'String', 'Smth.');    
+                inst.main_view_tol_combo = uicontrol('Parent', box, 'Style', 'popupmenu', 'String', tol_str, 'Callback', {@inst.layout_change_callback});                
+                set(inst.main_view_tol_combo, 'Value', inst.parent.config.property('MAIN_VIEW_TOLERANCE', 1));                                
+                set(box, 'Sizes', [50, -1, 50, -1, 60, 60]);
+                
                 % 2nd combo: secondary view 1    
                 box = uiextras.HBox('Parent', layout_box);    
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'Sec. 1:');
                 inst.sec_view_combos = [uicontrol('Parent', box, 'Style', 'popupmenu', 'String', strs, 'Callback', {@inst.layout_change_callback})];      
                 inst.sec_view_dir_check = uicontrol('Parent', box, 'Style', 'checkbox', 'String', 'Vec.', 'Callback', {@inst.layout_change_callback});    
                 inst.sec_view_full_combos = [uicontrol('Parent', box, 'Style', 'popupmenu', 'String', strs, 'Callback', {@inst.layout_change_callback}, 'Enable', full_status)];
-                set(box, 'Sizes', [50, -1, 50, -1]);
+                uicontrol('Parent', box, 'Style', 'text', 'String', 'Smth.');    
+                inst.sec_view_tol_combos = [uicontrol('Parent', box, 'Style', 'popupmenu', 'String', tol_str, 'Callback', {@inst.layout_change_callback})];
+                
+                set(box, 'Sizes', [50, -1, 50, -1, 60, 60]);
                 % 3rd combo: secondary view 2
                 box = uiextras.HBox('Parent', layout_box);    
                 uicontrol('Parent', box, 'Style', 'text', 'String', 'Sec. 2:');
@@ -150,18 +159,30 @@ classdef label_trajectories_view < handle
                                   ];     
                 inst.sec_view_dir_check = [inst.sec_view_dir_check, uicontrol('Parent', box, 'Style', 'checkbox', 'String', 'Vec.', 'Callback', {@inst.layout_change_callback})];
                 inst.sec_view_full_combos = [inst.sec_view_full_combos, uicontrol('Parent', box, 'Style', 'popupmenu', 'String', strs, 'Callback', {@inst.layout_change_callback}, 'Enable', full_status)];
-                set(box, 'Sizes', [50, -1, 50, -1]);
+                uicontrol('Parent', box, 'Style', 'text', 'String', 'Smth.');    
+                inst.sec_view_tol_combos = [inst.sec_view_tol_combos, uicontrol('Parent', box, 'Style', 'popupmenu', 'String', tol_str, 'Callback', {@inst.layout_change_callback})];
+                
+                set(box, 'Sizes', [50, -1, 50, -1, 60, 60]);
 
+                set(inst.sec_view_combos(1), 'Value', inst.parent.config.property('SEC_VIEW_1_DATA_REPR', 1));
+                set(inst.sec_view_dir_check(1), 'Value', inst.parent.config.property('SEC_VIEW_1_VECTOR_FIELD', 0));
+                set(inst.sec_view_full_combos(1), 'Value', inst.parent.config.property('SEC_VIEW_1_FULL_DATA_REPR', 1));
+                set(inst.sec_view_tol_combos(1), 'Value', inst.parent.config.property('SEC_VIEW_1_TOLERANCE', 1));
+                
+                set(inst.sec_view_combos(2), 'Value', inst.parent.config.property('SEC_VIEW_2_DATA_REPR', 1));
+                set(inst.sec_view_dir_check(2), 'Value', inst.parent.config.property('SEC_VIEW_2_VECTOR_FIELD', 0));
+                set(inst.sec_view_full_combos(2), 'Value', inst.parent.config.property('SEC_VIEW_2_FULL_DATA_REPR', 1));
+                set(inst.sec_view_tol_combos(2), 'Value', inst.parent.config.property('SEC_VIEW_2_TOLERANCE', 1));
+                             
                 % normalization values for speed and other scalar values
-                inst.data_repr_norm = zeros(1, length(inst.parent.config.DATA_REPRESENTATIONS));
-                inst.data_repr_off  = zeros(1, length(inst.parent.config.DATA_REPRESENTATIONS));
+                inst.data_repr_norm = inst.parent.config.property('DATA_REPR_NORMALIZATION', []);
 
                 inst.create_views;
                 inst.cur = 1; %current index                        
             end  
-            if ~inst.fiter_combo_valid
+            if ~inst.filter_combo_valid
                 inst.update_filter_combo;
-                inst.fiter_combo_valid = 1;
+                inst.filter_combo_valid = 1;
             end
             inst.show_trajectories;
         end
@@ -273,9 +294,10 @@ classdef label_trajectories_view < handle
                         lbl = inst.parent.clustering_results.classes(inst.parent.clustering_results.cluster_class_map(i)).abbreviation;
                     end
                     nclus = sum(inst.parent.clustering_results.cluster_index == i);
+                    mat = inst.parent.labels_matrix;
                     strings = [strings, sprintf('Cluster #%d (''%s'', N=%d, L=%d, I=%d)', ... 
                                                 i, lbl, nclus, ...
-                                                length(find(sum(inst.parent.labels_matrix(inst.parent.clustering_results.cluster_index == i, :), 2) > 0)), ...
+                                                length(find(sum(mat(inst.parent.clustering_results.cluster_index == i, :), 2) > 0)), ...
                                                 sum(isol(inst.parent.clustering_results.cluster_index == i)))];  
                 end
             end
@@ -316,13 +338,7 @@ classdef label_trajectories_view < handle
             end
 
             pts = repr.apply(tr, 'SimplificationTolerance', tol);
-
-            % if the tolerance changed re-scale everything
-            if tol ~= inst.simplify_level_prev
-                inst.data_repr_norm = zeros(1, length(inst.data_repr_norm));
-                inst.simplify_level_prev = tol;
-            end    
-
+            
             if repr.data_type == base_config.DATA_TYPE_COORDINATES
                 if vec
                     % simplify trajectory
@@ -334,13 +350,24 @@ classdef label_trajectories_view < handle
                 else
                     plot(pts(:,2), pts(:,3), '-', 'LineWidth', lw, 'Color', lc);
                 end
-            elseif dt == base_config.DATA_TYPE_SCALAR_FIELD            
+            elseif repr.data_type == base_config.DATA_TYPE_SCALAR_FIELD            
                 % normalize values
-                if inst.data_repr_norm(repr) == 0
+                off = [];
+                fac = [];
+                % see if already computed
+                id = hash_value({repr, tol});
+                for i = 1:size(inst.data_repr_norm, 1)
+                    if inst.data_repr_norm(i, 1) == id
+                        fac = inst.data_repr_norm(i, 2);
+                        off = inst.data_repr_norm(i, 3);
+                        break;
+                    end
+                end
+                if isempty(fac)
                    val_min = []; 
                    val_max = [];
                    for ii = 1:length(inst.parent.traj.items)
-                       tmp = inst.parent.traj.items(ii).data_representation(repr, 'SimplificationTolerance', tol);
+                       tmp = repr.apply(inst.parent.traj.items(ii), 'SimplificationTolerance', tol);
                        if isempty(val_min)
                            val_min = min(tmp(:, 4));
                            val_max = max(tmp(:, 4));
@@ -349,10 +376,12 @@ classdef label_trajectories_view < handle
                            val_max = max(val_max, max(tmp(:, 4)));
                        end
                    end
-                   inst.data_repr_norm(repr) = 1/(val_max - val_min);
-                   inst.data_repr_off(repr) = val_min;
+                   fac = 1/(val_max - val_min);
+                   off = val_min;
+                   inst.data_repr_norm = [inst.data_repr_norm; id, double(fac), double(off)]; 
+                   inst.parent.config.set_property('DATA_REPR_NORMALIZATION', inst.data_repr_norm);                
                 end
-                pts(:, 4) = (pts(:, 4) - inst.data_repr_off(repr))*inst.data_repr_norm(repr); 
+                pts(:, 4) = (pts(:, 4) - off)*fac; 
 
                 cm = jet;
                 n = 20;
@@ -373,7 +402,7 @@ classdef label_trajectories_view < handle
                          'facecol','no', 'edgecol', 'interp', 'linew', 2);            
                     colormap(cm);
                 end
-            elseif dt == base_config.DATA_TYPE_EVENTS
+            elseif repr.data_type == base_config.DATA_TYPE_EVENTS
                 % plot coordinates            
                 plot(pts(:,2), pts(:,3), '-', 'LineWidth', lw, 'Color', [0 0 0]);
                 % and plot points for the events
@@ -384,6 +413,13 @@ classdef label_trajectories_view < handle
                 for kk = 1:length(pos)
                     rectangle('Position', [pts(pos(kk), 2) - r, pts(pos(kk), 3) - r, 2*r, 2*r], 'Curvature', [1,1], 'FaceColor', [1 0 0]);                
                 end
+            elseif repr.data_type == base_config.DATA_TYPE_FUNCTION
+                cla;
+                % get rid 
+                hold off;                
+                axis tight;
+                plot(pts);
+                xlabel('t');                
             end
 
             set(gca, 'LooseInset', [0,0,0,0]);
@@ -405,6 +441,7 @@ classdef label_trajectories_view < handle
                             end
                             vec = get(inst.main_view_dir_check, 'value');
                             set(inst.parent.window, 'currentaxes', inst.axis_handles(i));
+                            tol = get(inst.main_view_tol_combo, 'value') - 1;
                         else
                             if isempty(inst.sec_view_handles)
                                 break;
@@ -416,6 +453,7 @@ classdef label_trajectories_view < handle
                                 continue; % "none"
                             end
                             set(inst.parent.window, 'currentaxes', inst.sec_view_handles((i - 1)*2 + k - 1));
+                            tol = get(inst.sec_view_tol_combos(k - 1), 'value') - 1;
                         end
 
                         hasfull = idxfull > 0 && idxfull <= length(inst.parent.config.DATA_REPRESENTATIONS);
@@ -433,12 +471,8 @@ classdef label_trajectories_view < handle
                         end
 
                         if idx > 0 && idx <= length(inst.parent.config.DATA_REPRESENTATIONS)
-                            if vec
-                                tol = get(simplify_tol_handle, 'value')*0.01*inst.parent.config.property('ARENA_R');
-                            else
-                                tol = 0;
-                            end
-
+                            tol = tol*0.01*inst.parent.config.property('ARENA_R');
+                            
                             inst.plot_trajectory( inst.parent.traj.items(traj_idx) ...
                                                 , inst.parent.config.DATA_REPRESENTATIONS(idx) ...
                                                 , vec, tol, hasfull);
@@ -720,6 +754,22 @@ classdef label_trajectories_view < handle
             drawnow;
             inst.parent.config.set_property('BROWSE_SEGMENTS_NX', get(inst.xviews_combo, 'value'));
             inst.parent.config.set_property('BROWSE_SEGMENTS_NY', get(inst.yviews_combo, 'value'));
+            % main view
+            inst.parent.config.set_property('MAIN_VIEW_DATA_REPR', get(inst.main_view_combo, 'value'));
+            inst.parent.config.set_property('MAIN_VIEW_VECTOR_FIELD', get(inst.main_view_dir_check, 'value'));
+            inst.parent.config.set_property('MAIN_VIEW_FULL_DATA_REPR', get(inst.main_view_full_combo, 'value'));
+            inst.parent.config.set_property('MAIN_VIEW_TOLERANCE', get(inst.main_view_tol_combo, 'value'));
+            % 1st mini view
+            inst.parent.config.set_property('SEC_VIEW_1_DATA_REPR', get(inst.sec_view_combos(1), 'value'));
+            inst.parent.config.set_property('SEC_VIEW_1_VECTOR_FIELD', get(inst.sec_view_dir_check(1), 'value'));
+            inst.parent.config.set_property('SEC_VIEW_1_FULL_DATA_REPR', get(inst.sec_view_full_combos(1), 'value'));
+            inst.parent.config.set_property('SEC_VIEW_1_TOLERANCE', get(inst.sec_view_tol_combos(1), 'value'));
+            % 2nd mini view
+            inst.parent.config.set_property('SEC_VIEW_2_DATA_REPR', get(inst.sec_view_combos(2), 'value'));
+            inst.parent.config.set_property('SEC_VIEW_2_VECTOR_FIELD', get(inst.sec_view_dir_check(2), 'value'));
+            inst.parent.config.set_property('SEC_VIEW_2_FULL_DATA_REPR', get(inst.sec_view_full_combos(2), 'value'));
+            inst.parent.config.set_property('SEC_VIEW_2_TOLERANCE', get(inst.sec_view_tol_combos(2), 'value'));
+                                    
             inst.parent.config.save_to_file;
             
             inst.create_views;
@@ -786,7 +836,7 @@ classdef label_trajectories_view < handle
             inst.segments_map = [];
             [~, inst.covering] = inst.parent.clustering_results.coverage();              
         
-            inst.fiter_combo_valid = 0;                    
+            inst.filter_combo_valid = 0;                    
         end
         
         function tags_updated(inst, source, eventdata)

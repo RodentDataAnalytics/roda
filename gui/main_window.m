@@ -6,7 +6,6 @@ classdef main_window < handle
         features_values = [];
         features_display = [];
         features_cluster = [];
-        labels_filename = [];
         selection = [];
         config = [];
         % GUI elements

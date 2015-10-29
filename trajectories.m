@@ -270,8 +270,8 @@ classdef trajectories < handle
             end
         end                   
                               
-        function res = classifier(inst, feat, selected_tags, npca_feat)
-            labels_map = inst.tags_mapping(selected_tags);
+        function res = classifier(inst, config, feat, traj_tags, selected_tags, npca_feat)
+            labels_map = traj_tags.matrix(selected_tags);
             labels_set = sum(labels_map, 2) > 0;
                         
             % add the 'undefined' tag index
@@ -298,10 +298,10 @@ classdef trajectories < handle
                 end
             end
                          
-            unmatched = find(labels_idx == -1);
+            % unmatched = find(labels_idx == -1);
             extra_lbl = {};
             extra_feat = []; 
-            extra_ids = [];
+           % extra_ids = [];
             
             % TODO: reimplement/rerhink the mixing of trajectory labels
 %             if ~isempty(unmatched)
@@ -332,7 +332,7 @@ classdef trajectories < handle
                 feat_val = feat_val*coeff(:, 1:npca_feat);                          
             end    
             
-            res = semisupervised_clustering(inst, feat_val, [extra_lbl, labels], selected_tags, length(extra_lbl));            
+            res = semisupervised_clustering(config, inst, feat_val, [extra_lbl, labels], selected_tags, length(extra_lbl));            
         end   
                 
         

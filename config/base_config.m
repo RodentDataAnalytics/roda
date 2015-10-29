@@ -52,19 +52,21 @@ classdef base_config < handle
                 
         %%%
         %%% Default data representations
-        %%%
-        
+        %%%        
         DATA_TYPE_COORDINATES = 1;
         DATA_TYPE_SCALAR_FIELD = 2;
         DATA_TYPE_VECTOR_FIELD = 3;
         DATA_TYPE_EVENTS = 4;
+        DATA_TYPE_FUNCTION = 5;
         
         DATA_REPRESENTATION_COORD = data_representation('Coordinates', base_config.DATA_TYPE_COORDINATES, 'trajectory_points');
         DATA_REPRESENTATION_SPEED = data_representation('Speed', base_config.DATA_TYPE_SCALAR_FIELD, 'trajectory_speed');        
+        DATA_REPRESENTATION_SPEED_PROFILE = data_representation('Speed profile', base_config.DATA_TYPE_FUNCTION, 'trajectory_speed_profile');        
         
         DEFAULT_DATA_REPRESENTATIONS = [ ...
             base_config.DATA_REPRESENTATION_COORD, ...
-            base_config.DATA_REPRESENTATION_SPEED ...
+            base_config.DATA_REPRESENTATION_SPEED, ...
+            base_config.DATA_REPRESENTATION_SPEED_PROFILE ...
         ];                                            
     end
     

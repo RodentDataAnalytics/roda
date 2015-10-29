@@ -21,6 +21,7 @@ classdef semisupervised_clustering < handle
         classes = [];
         nclasses = 0;
         segments = [];
+        config = [];
     end
         
     properties(GetAccess = 'public', SetAccess = 'public')
@@ -43,8 +44,9 @@ classdef semisupervised_clustering < handle
     end
     
     methods        
-        function inst = semisupervised_clustering(seg, feat, lbls, classes_in, next)            
+        function inst = semisupervised_clustering(conf, seg, feat, lbls, classes_in, next)            
             % Constructor         
+            inst.config = conf;
             inst.segments = seg;
             if nargin > 2
                 inst.classes = classes_in;
@@ -204,7 +206,13 @@ classdef semisupervised_clustering < handle
             cluster_idx = cluster_idx(results_map);   
 
             % map clusters to classes
-            cluster_map = cluster_to_class(arrayfun( @(ci) sum(cluster_idx == ci), 1:nclusters), lbls, cluster_idx(labels_idx)); 
+            cluster_map = cluster_to_class( ...
+                arrayfun( @(ci) sum(cluster_idx == ci) ...
+              , 1:nclusters) ...
+              , lbls ...
+              , cluster_idx(labels_idx) ...
+              , 'MinSamplesPercentage', inst.config.property('CLUSTER_CLASS_MINIMUM_SAMPLES_P', 0.01) ...
+              , 'MinSamplesExponent', inst.config.property('CLUSTER_CLASS_MINIMUM_SAMPLES_EXP', 0.75) ); 
                         
             %% 2nd stage: subcluster ambigouous clusters (containing elements of more than one 
             % this is the new cluster index for sub-clusters: start at the previous
