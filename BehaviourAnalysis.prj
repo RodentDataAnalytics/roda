@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="4237303183" file="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis.prj" location="C:\Users\Tiago\code\mwm_trajectories" name="BehaviourAnalysis" preferred-package-location="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
+  <configuration build-checksum="2850668645" file="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis.prj" location="C:\Users\Tiago\code\mwm_trajectories" name="BehaviourAnalysis" preferred-package-location="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
     <param.appname>BehaviourAnalysis</param.appname>
     <param.icon />
     <param.icons />

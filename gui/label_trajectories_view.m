@@ -467,7 +467,7 @@ classdef label_trajectories_view < handle
                                 id2 = inst.parent.traj.items(l).identification;
                                 len = length(id) - 1;
                                 if isequal(id(1:len), id2(1:len))                               
-                                    inst.plot_trajectory(inst.parent.traj.items(l), idxfull, 0, 0, 0);                                
+                                    inst.plot_trajectory(inst.parent.traj.items(l), inst.parent.config.DATA_REPRESENTATIONS(idxfull), 0, 0, 0);                                
                                     break;
                                 end
                             end                                                
