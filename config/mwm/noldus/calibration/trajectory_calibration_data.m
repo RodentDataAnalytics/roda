@@ -7,7 +7,7 @@ function [ data ] = trajectory_calibration_data( trajfile, dirname, center_x, ce
     % first set: "real" points (from screenshots)
     pts1 = trajectory_points_from_snapshots(dirname)
     % second set: distorted points (from what Ethovisipn exports)
-    [~, ~, pts2] = read_trajectory(trajfile);
+    [~, ~, pts2] = read_trajectory_ethovision(trajfile);
     
     for i = 1:length(pts1)
         % point in the distorted trajectory

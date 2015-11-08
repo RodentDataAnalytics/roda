@@ -25,7 +25,7 @@ classdef config_mwm_stress < config_mwm
         COMMON_SETTINGS = { ...
             'Sessions', 3, ...  
             'TrialsPerSession', [4 4 4], ...
-            'TrialType', repmat(config_mwm.TRIAL_TYPE_TRAINING, 1, 12), ...                          
+            'TrialType', repmat(1, 1, 12), ...                          
             'TrialTypesDescription', {'Training'}, ...                        
             'GroupsDescription', {'Control', 'Stress', 'Control/Food', 'Stress/Food'} ...                                             
         };
@@ -66,11 +66,13 @@ classdef config_mwm_stress < config_mwm
              );                                               
         end
                 
-        % Imports trajectories from Noldus data file's
-        function traj = load_data(inst, path)
-            addpath(fullfile(fileparts(mfilename('fullpath')),'../../import/noldus'));
-            traj = load_trajectories(1:3, 1, 'DeltaX', -100, 'DeltaY', -100);
-        end        
+      % Imports trajectories from Noldus data file's
+        function traj = load_data(inst, path, varargin)
+            addpath(fullfile(fileparts(mfilename('fullpath')), '/mwm/noldus'));
+            traj = load_trajectories_ethovision(inst, [path '/' 'set1'], 1, [path '/' 'screenshots/set1'], 'DeltaX', -100, 'DeltaY', -100);
+            traj = traj.append(load_trajectories_ethovision(inst, [path '/' 'set2'], 2, [path '/screenshots/set2'], 'DeltaX', -100, 'DeltaY', -100));
+            traj = traj.append(load_trajectories_ethovision(inst, [path '/' 'set3'], 3, [path '/screenshots/set3'], 'DeltaX', -100, 'DeltaY', -100));
+        end              
     end
 end
 

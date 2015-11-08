@@ -27,6 +27,8 @@ classdef configurations < handle
             switch idx
                 case 1
                     config = config_place_avoidance_silver(desc, sub_idx);
+                case 2
+                    config = config_mwm_stress(desc, sub_idx);                
                 otherwise
                     error('Need to update the list of configurations');
             end
@@ -60,11 +62,16 @@ classdef configurations < handle
             inst.sub_configurations = {};
             
             % hard coded configurations
-            conf = config_place_avoidance_silver.CONFIGURATIONS;
+            conf_pat = config_place_avoidance_silver.CONFIGURATIONS;
+            conf_mwm = config_mwm_stress.CONFIGURATIONS;
+            
             templates = { ...
                 'Place avoidance task (silver)', 'config_place_avoidance_silver', ...
-                    arrayfun( @(idx) conf{idx}{1}, ...
-                            1:length(conf), 'UniformOutput', 0)
+                    arrayfun( @(idx) conf_pat{idx}{1}, ...
+                            1:length(conf_pat), 'UniformOutput', 0), ...
+                 'Morris water maze (peripubertal stress)', 'config_mwm_stress', ...
+                    arrayfun( @(idx) conf_mwm{idx}{1}, ...
+                            1:length(conf_mwm), 'UniformOutput', 0)
             };
                 %, 'Place avoidance task (memantine)', config_place_avoidance_mem ...
                      

@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="2850668645" file="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis.prj" location="C:\Users\Tiago\code\mwm_trajectories" name="BehaviourAnalysis" preferred-package-location="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
+  <configuration build-checksum="555845953" file="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis.prj" location="C:\Users\Tiago\code\mwm_trajectories" name="BehaviourAnalysis" preferred-package-location="C:\Users\Tiago\code\mwm_trajectories\BehaviourAnalysis\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="MATLAB Compiler for Standalone Applications">
     <param.appname>BehaviourAnalysis</param.appname>
     <param.icon />
     <param.icons />
@@ -71,9 +71,11 @@
       <file>${PROJECT_ROOT}\clustering_purity.m</file>
       <file>${PROJECT_ROOT}\clustering_results.m</file>
       <file>${PROJECT_ROOT}\config\.\base_config.m</file>
+      <file>${PROJECT_ROOT}\config\.\config_mwm_stress.m</file>
       <file>${PROJECT_ROOT}\config\.\config_place_avoidance_silver.m</file>
       <file>${PROJECT_ROOT}\config\base_config.m</file>
       <file>${PROJECT_ROOT}\config\config_place_avoidance_silver.m</file>
+      <file>${PROJECT_ROOT}\config\mwm\config_mwm.m</file>
       <file>${PROJECT_ROOT}\config\place_avoidance\config_place_avoidance.m</file>
       <file>${PROJECT_ROOT}\config\place_avoidance\segmentation_place_avoidance.m</file>
       <file>${PROJECT_ROOT}\config\place_avoidance\trajectory_angular_distance_shock.m</file>
@@ -164,7 +166,6 @@
       <file>${PROJECT_ROOT}\features\trajectory_angular_dispersion.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_average_speed.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_boundaries.m</file>
-      <file>${PROJECT_ROOT}\features\trajectory_cv_inner_radius.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_density.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_distance_platform.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_eccentricity.m</file>
@@ -172,7 +173,6 @@
       <file>${PROJECT_ROOT}\features\trajectory_focus.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_latency.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_length.m</file>
-      <file>${PROJECT_ROOT}\features\trajectory_longest_loop.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_mean_angle.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_radius.m</file>
       <file>${PROJECT_ROOT}\features\trajectory_time_within_radius.m</file>

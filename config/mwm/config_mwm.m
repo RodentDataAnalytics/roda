@@ -15,7 +15,7 @@ classdef config_mwm < base_config
         FEATURE_CENTRE_DISPLACEMENT = trajectory_feature('D_ctr', 'Centre displacement', 'trajectory_centre_displacement', 1, ...
             {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'}); 
         FEATURE_PLATFORM_PROXIMITY = trajectory_feature('P_plat', 'Platform proximity', 'trajectory_time_within_radius', 1, ...
-            {'PLATFORM_PROXIMITY_RADIUS', 'PLATFORM_X', 'config_mwm.PLATFORM_Y'});
+            {'PLATFORM_PROXIMITY_RADIUS', 'PLATFORM_X', 'PLATFORM_Y'});
         FEATURE_CV_INNER_RADIUS = trajectory_feature('Ri_CV', 'Inner radius variation', 'trajectory_cv_inner_radius', 1, ...
             {'CENTRE_X', 'CENTRE_Y'});
         
@@ -52,7 +52,7 @@ classdef config_mwm < base_config
                                                
         CLASSES_COLORMAP = @jet;
         
-        SEGMENTATION_CONSTANT_LENGHT = function_wrapper('Constant length', 'trajectory_segmentation_constant_len', 1, ...
+        SEGMENTATION_CONSTANT_LENGTH = function_wrapper('Constant length', 'trajectory_segmentation_constant_len', 1, ...
             {'SEGMENT_LENGTH', 'SEGMENT_OVERLAP'});
     end
     
@@ -72,20 +72,15 @@ classdef config_mwm < base_config
                'ClusteringFeatureSet', config_mwm.DEFAULT_FEATURE_SET, ...               
                'TrialTypesDescription', {'Training'}, ...
                other_arg{:} ...           
-            );  
-                    
-            % used to calibrate the trajectories
-            inst.TRAJECTORY_SNAPSHOTS_DIRS = {...
-                fullfile(cur_dir, '../../data/mwm_peripubertal_stress/screenshots/set1/'), ...
-                fullfile(cur_dir, '../../data/mwm_peripubertal_stress/screenshots/set2/'), ...
-                fullfile(cur_dir, '../../data/mwm_peripubertal_stress/screenshots/set3/') ...
-            };            
+            );                                  
         end
                 
         % Imports trajectories from Noldus data file's
-        function traj = load_data(inst, path)
+        function traj = load_data(inst, path, varargin)
             addpath(fullfile(fileparts(mfilename('fullpath')), '/noldus'));
-            traj = load_trajectories(1:3, 1, 'DeltaX', -100, 'DeltaY', -100);
+            traj = load_trajectories_ethovision([path '/' 'set1'], 1, [path '/' 'screenshots/set1'], 'DeltaX', -100, 'DeltaY', -100);
+            traj = traj.append(load_trajectories_ethovision([path '/' 'set2'], 1, [path '/screenshots/set2'], 'DeltaX', -100, 'DeltaY', -100));
+            traj = traj.append(load_trajectories_ethovision([path '/' 'set3'], 1, [path '/screenshots/set3'], 'DeltaX', -100, 'DeltaY', -100));
         end        
     end
 end

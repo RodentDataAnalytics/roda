@@ -252,9 +252,8 @@ classdef base_config < handle
                 inst.set_trajectories(traj);
             else
                 % have to load them
-                inst.load_data(path, varargin{:});
-                traj = inst.TRAJECTORIES;
-            
+                traj = inst.load_data(path, varargin{:});
+                
                 % save for next time        
                 save(fn, 'traj');
             end
