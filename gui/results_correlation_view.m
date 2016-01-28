@@ -36,7 +36,7 @@ classdef results_correlation_view < handle
                 uicontrol('Parent', inst.controls_box, 'Style', 'text', 'String', 'Plot:');            
                 inst.plot_combo = uicontrol('Parent', inst.controls_box, ...
                                             'Style', 'popupmenu', ...
-                                            'String', {'Features-Features', 'Features-Clusters', 'Groups-Clusters'}, ...                                            
+                                            'String', {'Features-Features', 'Features-Clusters', 'Groups-Clusters', 'Clusters-Clusters'}, ...                                            
                                             'Callback', @inst.update_plots);
                 
                
@@ -100,7 +100,7 @@ classdef results_correlation_view < handle
                 case 2            
                     % features-clusters                    
                     if ~isempty(inst.main_window.clustering_results)
-                        vals = zeros(length(inst.main_window.features), inst.main_window.clustering_results.nclusters);
+                        vals = zeros(length(inst.main_window.config.SELECTED_FEATURES), inst.main_window.clustering_results.nclusters);
                         for fi = 1:length(inst.main_window.config.SELECTED_FEATURES)
                             feat_val = traj.compute_features(inst.main_window.config.SELECTED_FEATURES(fi));                            
                             for ic = 1:inst.main_window.clustering_results.nclusters                                               
@@ -133,6 +133,54 @@ classdef results_correlation_view < handle
                         else
                             ver_str = arrayfun( @(idx) sprintf('Group %s', inst.main_window.config.GROUPS_DESCRIPTION{idx}), 1:inst.main_window.config.GROUPS, 'UniformOutput', 0);                             
                         end
+                    end
+                case 4
+                    % clusters-clusters
+                    if ~isempty(inst.main_window.clustering_results)
+                        % measure the correlation between two matrices
+                        % defined by the first N elements of two clusters
+                        % (where N is the size of the smallest cluster).
+                        % Sort elements by their respective distance to the
+                        % centroids
+                        nc = inst.main_window.clustering_results.nclusters;
+                          
+                        feat_val = inst.config.clustering_feature_values;
+                        
+                        vals = zeros(nc, nc);
+                        for ic = 1:nc
+                            for jc = ic:nc
+                                if ic == jc
+                                    vals(ic, jc) = 1;
+                                    vals(jc, ic) = 1;
+                                else
+                                    sel1 = find(inst.main_window.clustering_results.cluster_index == ic);
+                                    sel2 = find(inst.main_window.clustering_results.cluster_index == jc);
+                
+                                    feat_norm1 = max(feat_val(sel1, :)) - min(feat_val(sel1, :));            
+                                    feat_norm2 = max(feat_val(sel2, :)) - min(feat_val(sel2, :));            
+                                    
+                                    dist1 = sum(((feat_val(sel1, :) - repmat(inst.main_window.clustering_results.centroids(:, ic)', length(sel1), 1)) ./ repmat(feat_norm1, length(sel1), 1)).^2, 2);
+                                    dist2 = sum(((feat_val(sel2, :) - repmat(inst.main_window.clustering_results.centroids(:, jc)', length(sel2), 1)) ./ repmat(feat_norm2, length(sel2), 1)).^2, 2);
+                
+                                    [~, ord] = sort(dist1);
+                                    sel1 = sel1(ord);
+                                    [~, ord] = sort(dist2);
+                                    sel2 = sel2(ord);
+                                    
+                                    n1 = length(sel1);
+                                    n2 = length(sel2);
+                                    n = min(n1, n2);                                
+                                    
+                                    % compute the correlation between n
+                                    % elements
+                                    rho = corr2( feat_val(sel1(1:n), :), feat_val(sel2(1:n), :) );
+                                    vals(ic, jc) = rho;
+                                    vals(jc, ic) = rho;                                    
+                                end
+                            end
+                        end
+                        hor_str = arrayfun( @(idx) sprintf('Cluster %d', idx), 1:inst.main_window.clustering_results.nclusters, 'UniformOutput', 0);                       
+                        ver_str = hor_str;
                     end
             end
             

@@ -19,7 +19,11 @@ function hash = hash_value( val )
         if iscell(val)
             hash = hash_value(val{1});
         else
-            hash = uint32(mod(val*2654435761, 2^32));
+            if isa(val, 'function_handle')
+                hash = hash_value(func2str(val));
+            else
+                hash = uint32(mod(val*2654435761, 2^32));
+            end
         end
     end
 end

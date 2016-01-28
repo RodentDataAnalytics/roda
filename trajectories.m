@@ -77,42 +77,63 @@ classdef trajectories < handle
         %   SEGMENT(LSEG, OVLP) breaks all trajectories into segments
         %   of length LEN and overlap OVL (given in %)   
         %   returns an array of trajectory segments
-            fprintf('Segmenting trajectories... ');
-            [progress] = process_options(varargin, 'ProgressCallback', []);
-
-            % construct new object
-            segments = trajectories([]);
-            partition = zeros(1, obj.count);
-            cum_partitions = zeros(1, obj.count);
-            p = 1;
-            off = 0;
-            for i = 1:obj.count                
-                newseg = f.apply(obj.items(i));
-                
-                if newseg.count >= nmin                    
-                    segments = segments.append(newseg);
-                    partition(i) = newseg.count;
-                    cum_partitions(i) = off;
-                    off = off + newseg.count;
-                else
-                    cum_partitions(i) = off;
-                end
-                
-                if segments.count > p*500
-                    fprintf('%d ', segments.count);
-                    p = p + 1;
-                    if ~isempty(progress)
-                        mess = sprintf('Segmenting trajectories [total segments: %d]', segments.count);
-                        if progress(mess, i/obj.count)
-                            error('Operation cancelled');
-                        end
-                    end
-                end  
-            end
-            segments.partitions_ = partition;
-            segments.parent = obj;
             
-            fprintf(': %d segments created.\n', segments.count);
+            % see if cached
+            cache_dir = globals.CACHE_DIRECTORY;
+            
+            id = hash_value( [obj.hash_value, f.hash_value, nmin ] );
+            id = hash_combine (id, hash_value( [varargin] ) );             
+            fn = fullfile(cache_dir, ['segments_', num2str(id), '.mat']);
+            if exist(fn, 'file')            
+                load(fn);  
+                segments = seg;
+            else                                          
+                fprintf('Segmenting trajectories... ');
+                [progress, nmax] = process_options(varargin, 'ProgressCallback', [], ...
+                                                             'MaxSegments', 0);
+
+                % construct new object
+                segments = trajectories([]);
+                partition = zeros(1, obj.count);
+                cum_partitions = zeros(1, obj.count);
+                p = 1;
+                off = 0;
+                for i = 1:obj.count                
+                    newseg = f.apply1(obj.items(i));
+
+                    if newseg.count >= nmin                    
+                        if nmax > 0 && nmax < newseg.count                            
+                            segments = segments.append(newseg.items(1:nmax));
+                        else
+                            segments = segments.append(newseg);
+                        end
+                        partition(i) = newseg.count;
+                        cum_partitions(i) = off;
+                        off = off + newseg.count;
+                    else
+                        cum_partitions(i) = off;
+                    end
+
+                    if segments.count > p*500
+                        fprintf('%d ', segments.count);
+                        p = p + 1;
+                        if ~isempty(progress)
+                            mess = sprintf('Segmenting trajectories [total segments: %d]', segments.count);
+                            if progress(mess, i/obj.count)
+                                error('Operation cancelled');
+                            end
+                        end
+                    end  
+                end
+                segments.partitions_ = partition;
+                segments.parent = obj;
+
+                fprintf(': %d segments created.\n', segments.count);
+            
+                % cache it for next time
+                seg = segments;
+                save(fn, 'seg');
+            end
         end
         
         function out = partitions(inst)
@@ -270,10 +291,10 @@ classdef trajectories < handle
             end
         end                   
                               
-        function res = classifier(inst, config, feat, traj_tags, selected_tags, npca_feat)
+        function res = classifier(inst, config, traj_tags, selected_tags)
             labels_map = traj_tags.matrix(selected_tags);
             labels_set = sum(labels_map, 2) > 0;
-                        
+            
             % add the 'undefined' tag index
             undef_tag_idx = tag.tag_position(selected_tags, base_config.UNDEFINED_TAG.abbreviation);
             if undef_tag_idx > 0
@@ -322,16 +343,10 @@ classdef trajectories < handle
 %                         extra_ids = [extra_ids; id];
 %                     end
 %                 end
-%             end
-                
-            feat_val = [extra_feat; inst.compute_features(feat)];
-            
-            if npca_feat > 0
-                % use PCA to reduce features;
-                coeff = pca(feat_val);                
-                feat_val = feat_val*coeff(:, 1:npca_feat);                          
-            end    
-            
+%             end                
+             % feat_val = [extra_feat; inst.compute_features(feat)];
+            feat_val = config.clustering_feature_values;            
+                         
             res = semisupervised_clustering(config, inst, feat_val, [extra_lbl, labels], selected_tags, length(extra_lbl));            
         end   
                 

@@ -147,7 +147,7 @@ classdef classification_results_view < handle
             
             set(inst.cluster_combo, 'String', strings, 'Callback', @inst.update_callback, 'Enable', 'on', 'Value', 1);            
             if ~isempty(inst.tab_panel)
-                inst.update(inst.tab_panel.SelectedChild);
+                inst.update_child(inst.tab_panel.SelectedChild);
             end
         end
         

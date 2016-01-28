@@ -381,7 +381,7 @@ classdef label_trajectories_view < handle
                    inst.data_repr_norm = [inst.data_repr_norm; id, double(fac), double(off)]; 
                    inst.parent.config.set_property('DATA_REPR_NORMALIZATION', inst.data_repr_norm);                
                 end
-                pts(:, 4) = (pts(:, 4) - off)*fac; 
+                pts(:, 4) = (pts(:, 4) - double(off))*double(fac); 
 
                 cm = jet;
                 n = 20;
@@ -418,7 +418,12 @@ classdef label_trajectories_view < handle
                 % get rid 
                 hold off;                
                 axis tight;
-                plot(pts);
+                if tol > 0
+                    plot(pts(:, 1), smooth(pts(:, 2), ceil(tol)));
+                else                   
+                    plot(pts(:, 1), pts(:, 2));
+                end
+                    
                 xlabel('t');                
             end
 

@@ -67,7 +67,16 @@ classdef base_config < handle
             base_config.DATA_REPRESENTATION_COORD, ...
             base_config.DATA_REPRESENTATION_SPEED, ...
             base_config.DATA_REPRESENTATION_SPEED_PROFILE ...
-        ];                                            
+        ];
+    
+        %%%
+        %%% Standard segmentations
+        %%%
+        SEGMENTATION_CONSTANT_LENGTH = function_wrapper('Constant length', 'trajectory_segmentation_constant_len', 1, ...
+            {'SEGMENT_LENGTH', 'SEGMENT_OVERLAP'});
+        
+        SEGMENTATION_CONSTANT_TIME = function_wrapper('Constant time', 'trajectory_segmentation_constant_time', 1, ...
+            {'SEGMENT_TIME', 'SEGMENT_TIME_OVERLAP'});
     end
     
     properties(GetAccess = 'public', SetAccess = 'protected')
@@ -76,6 +85,7 @@ classdef base_config < handle
         DATA_REPRESENTATIONS = [];
         FEATURES = [];  
         SEGMENTATION_FUNCTION = [];
+        CLUSTERING_FEATURES_SEGMENTATION = [];
         OUTPUT_DIR = 'unknown.mat';
         SAVED_FILE_NAME = [];
         SAVED_TAGS_FILE_NAME = [];
@@ -99,6 +109,9 @@ classdef base_config < handle
     
     properties(GetAccess = 'private', SetAccess = 'private')
         properties_ = containers.Map('KeyType', 'char', 'ValueType', 'any');
+        clust_feat_vals_ = [];
+        prev_npca_ = -1;
+        sub_segments_ = [];
     end
     
     methods
@@ -106,10 +119,11 @@ classdef base_config < handle
            [extr_tags, clus_feat_set, feat_set, extr_data_repr, extr_features, ...
             inst.SESSIONS, inst.TRIALS_PER_SESSION,  ...
             inst.TRIAL_TYPES_DESCRIPTION, inst.TRIAL_TYPES, inst.GROUPS_DESCRIPTION, ...
-            inst.SEGMENTATION_FUNCTION, inst.TAG_TYPES_DESCRIPTION, prop] = process_options(varargin, ...
+            inst.SEGMENTATION_FUNCTION, inst.TAG_TYPES_DESCRIPTION, ...
+            inst.CLUSTERING_FEATURES_SEGMENTATION, prop] = process_options(varargin, ...
                 'Tags', [], ...
-                'ClusteringFeatureset', config_place_avoidance.CLUSTERING_FEATURE_SET_APAT, ...
-                'FeatureSet', config_place_avoidance.FEATURE_SET_APAT, ...    
+                'ClusteringFeatureSet', [], ...
+                'FeatureSet', [], ...    
                 'DataRepresentations', [], ...
                 'Features', [], ...                                
                 'Sessions', 1, ...
@@ -119,6 +133,7 @@ classdef base_config < handle
                 'GroupsDescription', {'Unknown'}, ...
                 'SegmentationFunction', [], ...
                 'TagTypesDescription', {'Behavioural class', 'Trajectory attribute'},  ...
+                'SubSegmentationFunction', [], ...                    
                 'Properties', {} ...
             );
                         
@@ -220,6 +235,9 @@ classdef base_config < handle
             if ~isempty(inst.SEGMENTATION_FUNCTION)
                 inst.SEGMENTATION_FUNCTION.set_parameters(inst);
             end
+            if ~isempty(inst.CLUSTERING_FEATURES_SEGMENTATION)
+                inst.CLUSTERING_FEATURES_SEGMENTATION.set_parameters(inst);
+            end
         end
         
         function ses = trial_to_session(inst, trial)
@@ -252,25 +270,22 @@ classdef base_config < handle
                 inst.set_trajectories(traj);
             else
                 % have to load them
-                traj = inst.load_data(path, varargin{:});
-                
-                % save for next time        
-                save(fn, 'traj');
+                res = inst.load_data(path, varargin{:});
+                if res == 1
+                    traj = inst.TRAJECTORIES;                
+                    % save for next time        
+                    save(fn, 'traj');
+                else
+                    error('Error loading trajectories');
+                end
             end
             
             % see if we want to segment them
             if ~isempty(inst.SEGMENTATION_FUNCTION)        
-                % see if cached            
-                id = hash_combine(id, inst.SEGMENTATION_FUNCTION.hash_value);             
-                fn = fullfile(cache_dir, ['segments_', num2str(id), '.mat']);
-                if exist(fn, 'file')            
-                    load(fn);                
-                else                        
-                    nmin = inst.property('SEGMENTATION_MINIMUM_SEGMENTS', 2);
-                    seg = inst.TRAJECTORIES.partition( inst.SEGMENTATION_FUNCTION, nmin, varargin{:} );           
-                    save(fn, 'seg');
-                end
-                inst.set_trajectories(seg);
+                nmin = inst.property('SEGMENTATION_MINIMUM_SEGMENTS', 2);
+                nmax = inst.property('SEGMENTATION_MAXIMUM_SEGMENTS', 0);                
+                inst.set_trajectories( inst.TRAJECTORIES.partition( inst.SEGMENTATION_FUNCTION, nmin, ...
+                    'MaxSegments', nmax, varargin{:} ) );
             end            
         end
         
@@ -285,6 +300,67 @@ classdef base_config < handle
                     end
                 end
             end                           
+        end
+        
+        function vals = clustering_feature_values(inst)
+            npca = inst.property('NUMBER_FEATURES_PCA', 0);
+                
+            if isempty(inst.clust_feat_vals_) || inst.prev_npca_ ~= npca
+                % check if we want to sub-segment the segments to compute
+                % multiple values for each feature               
+                if ~isempty(inst.CLUSTERING_FEATURES_SEGMENTATION)
+                    if isempty(inst.sub_segments_)
+                        nmin = inst.property('SUB_SEGMENTATION_MINIMUM_SEGMENTS', 2);
+                        nmax = inst.property('SUB_SEGMENTATION_MAXIMUM_SEGMENTS', 0);                
+                
+                        inst.sub_segments_ = inst.TRAJECTORIES.partition(inst.CLUSTERING_FEATURES_SEGMENTATION, nmin, ...
+                            'MaxSegments', nmax);                                                
+                    end
+                    % use the sub-segments
+                    traj = inst.sub_segments_;
+                else
+                    % use the original segments
+                    traj = inst.TRAJECTORIES;
+                end
+                
+                if npca > 0 && isempty(inst.sub_segments_)
+                    inst.clust_feat_vals_ = traj.compute_features_pca(inst.CLUSTERING_FEATURES, npca);
+                else
+                    inst.clust_feat_vals_ = traj.compute_features(inst.CLUSTERING_FEATURES);
+                end
+                inst.prev_npca_ = npca;
+                
+                if ~isempty(inst.sub_segments_)
+                    % combine the feature values of sub-segments for the same segments
+                    part = inst.sub_segments_.partitions;
+                    nmax = max(part);
+                    nfeat = size(inst.clust_feat_vals_, 2);
+                    comb_values = zeros(inst.TRAJECTORIES.count, nmax*nfeat);
+                    
+                    i = 1;
+                    n = 0;
+                    iseg = 1;
+                    while i <= inst.sub_segments_.count
+                        n = n + 1;
+                        if n > part(iseg)
+                            n = 0;
+                            iseg = iseg + 1;
+                            continue;
+                        end
+                        comb_values(iseg, (n - 1)*nfeat + 1 : n*nfeat) = inst.clust_feat_vals_(i, :);
+                        i = i + 1;
+                    end                                        
+                    inst.clust_feat_vals_ = comb_values;
+                end                
+                
+            end
+            
+            if npca > 0
+                coeff = pca(inst.clust_feat_vals_);                
+                inst.clust_feat_vals_ = inst.clust_feat_vals_*coeff(:, 1:npca);
+            end
+            
+            vals = inst.clust_feat_vals_;
         end
     end
     

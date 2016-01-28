@@ -50,10 +50,7 @@ classdef config_mwm < base_config
             tag('AT', 'approaching_target', base_config.TAG_TYPE_BEHAVIOUR_CLASS) ...
         ];
                                                
-        CLASSES_COLORMAP = @jet;
-        
-        SEGMENTATION_CONSTANT_LENGTH = function_wrapper('Constant length', 'trajectory_segmentation_constant_len', 1, ...
-            {'SEGMENT_LENGTH', 'SEGMENT_OVERLAP'});
+        CLASSES_COLORMAP = @jet;                
     end
     
     methods    

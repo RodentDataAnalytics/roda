@@ -11,12 +11,12 @@ classdef clustering_view < handle
         clusters_min_combo = [];
         clusters_max_combo = [];
         num_features_combo = []; 
-        num_features = -1;
         clusters_min = -1;
         clusters_max = -1;
         enable_cv_check = [];        
         prev_button = [];
-        next_button =[]
+        next_button = [];
+        map_clusters_button = [];
         status_text = [];
         cur = 0;
         
@@ -66,10 +66,11 @@ classdef clustering_view < handle
                 
                 %% clusters max
                 hbox = uiextras.HBox('Parent', vbox_ctrls);
-                uicontrol('Parent', hbox, 'Style', 'text', 'String', '# of features:');        
-                vals = arrayfun( @(x) sprintf('%d', x), 1:length(inst.parent.config.CLUSTERING_FEATURES), 'UniformOutput', 0);                
+                uicontrol('Parent', hbox, 'Style', 'text', 'String', 'PCA components:');        
+                vals = arrayfun( @(x) sprintf('%d', x), 1:100, 'UniformOutput', 0);                
                 inst.num_features_combo = uicontrol('Parent', hbox, 'Style', 'popupmenu', 'String', vals);                                         
-                set(hbox, 'Sizes', [90 80] );                
+                inst.map_clusters_button = uicontrol('Parent', hbox, 'Style', 'pushbutton', 'String', 'Map clusters', 'Callback', {@inst.map_clusters_callback});                                
+                set(hbox, 'Sizes', [90 80 -1] );                
                 set(inst.num_features_combo, 'value', 4);                   
                 
                 inst.cur = 0;
@@ -133,7 +134,7 @@ classdef clustering_view < handle
             else
                 test_p = 0.;
             end
-            inst.num_features = get(inst.num_features_combo, 'value');
+            inst.parent.config.set_property('NUMBER_FEATURES_PCA', get(inst.num_features_combo, 'value'));            
             
             % run multiple clustering rounds            
             inst.clustering_results = [];
@@ -142,10 +143,8 @@ classdef clustering_view < handle
             
             classif = inst.parent.traj.classifier( ...
                 inst.parent.config ...
-              , inst.parent.config.CLUSTERING_FEATURES ...
               , inst.parent.traj_labels ...              
-              , inst.parent.config.TAGS(find(tag_type == base_config.TAG_TYPE_BEHAVIOUR_CLASS)) ...
-              , inst.num_features ...
+              , inst.parent.config.TAGS(find(tag_type == base_config.TAG_TYPE_BEHAVIOUR_CLASS)) ...              
             );                
             for n = inst.clusters_min:inst.clusters_max
                 set(inst.status_text, 'String', ['Running clustering for N=' num2str(n)]);
@@ -203,5 +202,9 @@ classdef clustering_view < handle
             end
             set(inst.parent.window, 'Position', get(inst.parent.window, 'Position') + [1 1 1 1]);
         end
-    end   
+                
+        function map_clusters_callback(inst, source, eventdata)
+            
+        end        
+   end   
 end

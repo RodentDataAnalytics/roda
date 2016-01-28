@@ -115,14 +115,14 @@ classdef trajectory < handle
             segment = trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 0, beg, starti, traj.trial_type);   
         end                       
         
-        function [ V ] = compute_features(traj, feat)
+        function [ V ] = compute_features(inst, feat)
         %COMPUTE_FEATURES Computes a set of features for a trajectory
         %   COMPUTE_FEATURES(traj, [F1, F2, ... FN]) computes features F1, F2, ..
         %   FN for trajectory traj (features are identified by config defined 
         %   at the beginning of this class    
             V = [];
             for i = 1:length(feat)
-                V = [V, traj.compute_feature(feat(i))];
+                V = [V, inst.compute_feature(feat(i))];
             end
         end            
         
@@ -143,12 +143,15 @@ classdef trajectory < handle
             [clr, arn, ls, lw] = process_options(varargin, ...
                 'Color', [0 0 0], 'DrawArena', 1, 'LineSpec', '-', 'LineWidth', 1);
             if arn
-                axis off;
-                daspect([1 1 1]);                      
-                
                 ra = config.property('ARENA_R');
                 x0 = config.property('CENTRE_X');
                 y0 = config.property('CENTRE_Y');
+                
+                axis off;
+                axis tight;
+                xlim([0 2*ra]);
+                ylim([0 2*ra]);
+                daspect([1 1 1]);                
                                
                 rectangle('Position', [x0 - ra, y0 - ra, ra*2, ra*2],...
                     'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);

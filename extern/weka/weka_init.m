@@ -3,6 +3,7 @@ function weka_init
     if isempty(wekajarpath)
         wekajarpath = fullfile(fileparts(mfilename('fullpath')), 'weka.jar');
         javaaddpathstatic(wekajarpath);        
-        javaaddpathstatic(fullfile(fileparts(mfilename('fullpath')), 'Jama-1.0.3.jar'));
+        javaaddpathstatic(fullfile(fileparts(mfilename('fullpath')), 'Jama-1.0.3.jar'));        
+        javaaddpath(fullfile(fileparts(mfilename('fullpath'))));
     end    
 end

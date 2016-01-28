@@ -13,7 +13,7 @@ function results_clustering_parameters
     res3 = [];
     nc = [];
     test_set = [];      
-    covering = [];4
+    covering = [];
     param = g_config.TAGS_CONFIG{2};    
         
     for i = 1:10
