@@ -1,15 +1,14 @@
-function test(pts) 
-    figure(1);
+function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
+    segments = trajectories([]);
+    
+    pts = dtrepr.apply(traj);
     pts = [pts(:, 1), medfilt1(pts(:, 2), 5)]; 
-    plot(pts(:, 1), pts(:, 2));
-    tmin = 10;
+    tmin = 1;    
         
     %%%%%%%%%%%%%
     
     % break into sub-segments
-    segs = {};
     pti = 1;
-    off = 1;
     n = size(pts, 1);
     new_seg = 1;
     while new_seg
@@ -40,7 +39,10 @@ function test(pts)
                     end
                     j = j + 1;
                 end     
-                segs = [segs, pts(pti:ptf, :)];
+                % see if we are long enough
+                if pts(ptf, 1) - pts(pti, 1) > dt_min         
+                    segments = segments.append(trajectory(pts(pti:ptf, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
+                end
                 pti = ptf + 1;        
                 new_seg = 1;
                 break;
@@ -49,33 +51,7 @@ function test(pts)
     end    
     
     % see if we want to append segments 
-    if pts(n, 1) - pts(pti, 1) < tmin
-        if ~isempty(segs)
-            segs{length(segs)} = [segs{length(segs)}; pts(pti:n, :)];
-        end
-    else
-        segs = [segs, pts(pti:n, :)];
-    end
-    
-    for i = 1:length(segs)
-        figure(i + 1);
-        tmp = segs{i};
-        plot(tmp(:, 1), tmp(:, 2));
-    end 
-    
-    function qd = quadrant(x, y)
-        if x > 0
-            if y > 0
-                qd = 1;
-            else
-                qd = 4;
-            end
-        else
-            if y > 0
-                qd = 2;
-            else
-                qd = 3;
-            end
-        end
-    end
+    if pts(n, 1) - pts(pti, 1) > dt_min                 
+        segments = segments.append(trajectory(pts(pti:n, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
+    end        
 end
