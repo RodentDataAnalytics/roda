@@ -1,7 +1,7 @@
 function pts = trajectory_arena_coord( traj, x0, y0, f, varargin )    
     [tol] = process_options(varargin, 'SimplificationTolerance', 0);
     
-    pts = [];
+    pts = traj.points(1, :);
     for i = 2:size(traj.points, 1)                
         dt = traj.points(i - 1, 1) - traj.points(1, 1);
         x = traj.points(i, 2) - x0;
