@@ -144,7 +144,7 @@ classdef results_correlation_view < handle
                         % centroids
                         nc = inst.main_window.clustering_results.nclusters;
                           
-                        feat_val = inst.config.clustering_feature_values;
+                        feat_val = inst.main_window.config.clustering_feature_values;
                         
                         vals = zeros(nc, nc);
                         for ic = 1:nc

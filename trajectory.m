@@ -97,7 +97,7 @@ classdef trajectory < handle
             pts = [];
             dist = 0;
             starti = 0;
-            for i = 2:length(traj.points)
+            for i = 2:size(traj.points, 1)
                dist = dist + norm( traj.points(i, 2:3) - traj.points(i - 1, 2:3) );
                if dist >= beg
                    if starti == 0
@@ -112,9 +112,37 @@ classdef trajectory < handle
                end
             end
              
-            segment = trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 0, beg, starti, traj.trial_type);   
-        end                       
+            segment = trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 0, traj.offset + beg, traj.start_index + starti - 1, traj.trial_type);   
+        end  
         
+         function [ segment ] = sub_segment_time(traj, toff, dt)
+            %SUB_SEGMENT returns a segment from the trajectory
+            pts = [];
+            n = size(traj.points, 1);
+            dist = 0;
+            starti = 0;
+            pts = [];
+            if n > 0
+                ti = traj.points(1, 1);
+                for i = 2:n
+                   dist = dist + norm( traj.points(i, 2:3) - traj.points(i - 1, 2:3) );
+                   
+                   if starti == 0
+                       if traj.points(i, 1) - ti >= toff
+                           starti = i;
+                       end                     
+                   else                 
+                       if traj.points(i, 1) - traj.points(starti, 1) >= dt
+                           break;
+                       end
+                   end
+                end
+                pts = traj.points(starti:i, :);
+            end
+            
+            segment = trajectory(pts, traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 0, traj.offset + dist, traj.start_index + starti - 1, traj.trial_type);   
+        end 
+                
         function [ V ] = compute_features(inst, feat)
         %COMPUTE_FEATURES Computes a set of features for a trajectory
         %   COMPUTE_FEATURES(traj, [F1, F2, ... FN]) computes features F1, F2, ..

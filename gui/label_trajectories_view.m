@@ -488,13 +488,13 @@ classdef label_trajectories_view < handle
                     end
 
                     hold on;                
-                    if ~isempty(inst.covering)
-                        if inst.covering(traj_idx)
-                            rectangle('Position', [80, 80, 10, 10], 'FaceColor', [0.5, 1, 0.5]);                    
-                        else
-                            rectangle('Position', [80, 80, 10, 10], 'FaceColor', [1, 0.5, 0.5]);
-                        end
-                    end                                    
+%                     if ~isempty(inst.covering)
+%                         if inst.covering(traj_idx)
+%                             rectangle('Position', [80, 80, 10, 10], 'FaceColor', [0.5, 1, 0.5]);                    
+%                         else
+%                             rectangle('Position', [80, 80, 10, 10], 'FaceColor', [1, 0.5, 0.5]);
+%                         end
+%                     end                                    
 
                     % update the status text with feature values
                     str = '';
