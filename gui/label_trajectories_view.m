@@ -746,14 +746,14 @@ classdef label_trajectories_view < handle
         end
 
         function filter_next_callback(inst, source, eventdata)
-            val = get(inst.filter_bombo, 'value');        
-            set(inst.filter_bombo, 'value', val + 1);
+            val = get(inst.filter_combo, 'value');        
+            set(inst.filter_combo, 'value', val + 1);
             inst.combobox_filter_callback(0, 0);
         end
 
         function filter_prev_callback(inst, source, eventdata)
-            val = get(inst.filter_bombo, 'value');        
-            set(inst.filter_bombo, 'value', val - 1);
+            val = get(inst.filter_combo, 'value');        
+            set(inst.filter_combo, 'value', val - 1);
             inst.combobox_filter_callback(0, 0);
         end    
 

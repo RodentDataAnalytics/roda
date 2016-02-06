@@ -123,6 +123,13 @@ classdef results_correlation_view < handle
                             % vals(gi, :) = vals(gi, :) ./ repmat(norm(vals(gi, :)), 1, size(vals, 2));                      
                         end
                         
+                        % normalize by number of segments in each group
+                        ntot = sum(sel0);
+                        for gi = 1:inst.main_window.config.GROUPS                                                   
+                            fac = ntot / sum(groups == gi); 
+                            vals(gi, :) = fac*vals(gi, :);
+                        end
+                        
                         % normalize feature
                         for ic = 1:inst.main_window.clustering_results.nclusters                                               
                             vals(:, ic) = vals(:, ic) ./ repmat(norm(vals(:, ic)), size(vals, 1), 1);                                                                   

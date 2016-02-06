@@ -229,6 +229,12 @@ classdef base_config < handle
             for i = 1:length(inst.FEATURES)
                 inst.FEATURES(i).set_parameters(inst);
             end
+            for i = 1:length(inst.CLUSTERING_FEATURES)
+                inst.CLUSTERING_FEATURES(i).set_parameters(inst);
+            end 
+            for i = 1:length(inst.DISPLAY_FEATURES)
+                inst.DISPLAY_FEATURES(i).set_parameters(inst);
+            end 
             for i = 1:length(inst.DATA_REPRESENTATIONS)
                 inst.DATA_REPRESENTATIONS(i).set_parameters(inst);
             end

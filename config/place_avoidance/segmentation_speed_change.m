@@ -4,7 +4,11 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
     pts = dtrepr.apply(traj);
     pts = [pts(:, 1), medfilt1(pts(:, 2), 5)]; 
     tmin = 1;    
-        
+    
+    sel = process_options(varargin, 'Selection', '');
+    first_seg = (isempty(sel) || strcmp(sel, 'AfterShock'));
+    other_seg = (isempty(sel) || strcmp(sel, 'NotAfterShock'));
+    
     %%%%%%%%%%%%%
     
     % break into sub-segments
@@ -19,33 +23,34 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
             end
             
             % compute median speed
-            vm = median( abs(pts(pti:i, 2)) );
-            vsd = vm / 0.645;
+            vm = median( pts(pti:i, 2) );
             
             % see if we crossed the "threshold"
-            if abs(pts(i, 2)) > (vm + 3*vsd)
+            if abs(pts(i, 2) - vm) > .5
                 % look for a "peak" point within 1 sec
-                j = i + 1;
-                ptf = j;
-                while j < n && pts(j, 1) - pts(i, 1) <= .5  
-                    if pts(i, 2) > 0
-                        if pts(j, 2) > pts(i, 2)
-                            ptf = j;
+                if i < n
+                    j = i + 1;
+                    ptf = j;
+                    while j < n && pts(j, 1) - pts(i, 1) <= .5  
+                        if pts(i, 2) > 0
+                            if pts(j, 2) > pts(i, 2)
+                                ptf = j;
+                            end
+                        else
+                            if pts(j, 2) < pts(i, 2)
+                                ptf = j;
+                            end
                         end
-                    else
-                        if pts(j, 2) < pts(i, 2)
-                            ptf = j;
-                        end
+                        j = j + 1;
+                    end     
+                    % see if we are long enough
+                    if pts(ptf, 1) - pts(pti, 1) > dt_min                             
+                        segments = segments.append(trajectory(traj.points(pti:ptf, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
                     end
-                    j = j + 1;
-                end     
-                % see if we are long enough
-                if pts(ptf, 1) - pts(pti, 1) > dt_min         
-                    segments = segments.append(trajectory(traj.points(pti:ptf, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
-                end
-                pti = ptf + 1;        
-                new_seg = 1;
-                break;
+                    pti = min(ptf + 1, n);        
+                    new_seg = 1;
+                    break;
+                end                
             end
         end
     end    
@@ -53,5 +58,12 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
     % see if we want to append segments 
     if pts(n, 1) - pts(pti, 1) > dt_min                 
         segments = segments.append(trajectory(traj.points(pti:n, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
-    end        
+    end      
+    
+    if ~other_seg && segments.count > 1        
+        segments = trajectories(segments.items(1) );        
+    end
+    if ~first_seg && segments.count > 1
+        segments = trajectories(segments.items(2:end));           
+    end
 end
