@@ -26,7 +26,7 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
             vm = median( pts(pti:i, 2) );
             
             % see if we crossed the "threshold"
-            if abs(pts(i, 2) - vm) > .5
+            if abs(pts(i, 2) - vm) > .4
                 % look for a "peak" point within 1 sec
                 if i < n
                     j = i + 1;
