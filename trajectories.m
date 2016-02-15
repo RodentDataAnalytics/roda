@@ -80,7 +80,7 @@ classdef trajectories < handle
             
             % see if cached
             cache_dir = globals.CACHE_DIRECTORY;
-            
+            fhash = f.hash_value;
             id = hash_value( [obj.hash_value, f.hash_value, nmin ] );
             id = hash_combine (id, hash_value( [varargin] ) );             
             fn = fullfile(cache_dir, ['segments_', num2str(id), '.mat']);

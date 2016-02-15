@@ -22,7 +22,7 @@ function hash = hash_value( val )
             if isa(val, 'function_handle')
                 hash = hash_value(func2str(val));
             else
-                hash = uint32(mod(val*2654435761, 2^32));
+                hash = uint32(mod(val, 2^32));
             end
         end
     end

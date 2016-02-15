@@ -315,26 +315,12 @@ classdef label_trajectories_view < handle
                 hold on;
                 lw = 2;
                 lc = [0 1 0];
-            else        
+            else
+                cla;
+                hold on;
                 axis off;
                 daspect([1 1 1]);
-                ra = inst.parent.config.property('ARENA_R');
-                x0 = inst.parent.config.property('CENTRE_X');
-                y0 = inst.parent.config.property('CENTRE_Y');
-                
-                rectangle('Position',[x0 - ra, y0 - ra, ra*2, ra*2],...
-                    'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);
-                hold on;
-                axis square;
-                % see if we have a platform to draw
-                if inst.parent.config.has_property('PLATFORM_X')
-                    x0 = inst.parent.config.property('PLATFORM_X');
-                    y0 = inst.parent.config.property('PLATFORM_Y');
-                    rp = inst.parent.config.property('PLATFORM_R');
-                    
-                    rectangle('Position',[x0 - rp, y0 - rp, 2*rp, 2*rp],...
-                        'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3);             
-                end
+                inst.parent.config.draw_arena(tr, repr);                                                
             end
 
             pts = repr.apply(tr, 'SimplificationTolerance', tol);
@@ -350,6 +336,14 @@ classdef label_trajectories_view < handle
                 else
                     plot(pts(:,2), pts(:,3), '-', 'LineWidth', lw, 'Color', lc);
                 end
+                
+                % show direction vector                
+                ra = inst.parent.config.property('ARENA_R', 1);
+                %ang = atan2( pts(4, 3) - pts(1, 3), pts(4, 2) - pts(1, 2) );                                
+                %arrow(pts(1, 2:3), pts(1, 2:3) + 0.25*r*[cos(ang), sin(ang)], 'LineWidth', 2, 'Length', 0.12*r, 'FaceColor', 'b', 'EdgeColor', 'b');
+                rectangle('Position',[pts(1, 2), pts(1,3), ra*.07, ra*.07],...
+                    'Curvature',[1, 1], 'FaceColor',[.2, .8, .2], 'edgecolor', [0.2, .8, 0.2], 'LineWidth', 1);
+                
             elseif repr.data_type == base_config.DATA_TYPE_SCALAR_FIELD            
                 % normalize values
                 off = [];

@@ -30,7 +30,7 @@ classdef main_window < handle
     methods
         function inst = main_window(cfg, varargin)
             %%% HACK OpenGL renderer has some problems -> use SW rendering instead
-            set(0, 'DefaultFigureRenderer', 'painters');
+            % set(0, 'DefaultFigureRenderer', 'painters');
             %
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern'));    
             addpath(fullfile(fileparts(mfilename('fullpath')), '../extern/GUILayout'));

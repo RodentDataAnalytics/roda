@@ -17,21 +17,27 @@ function segments = segmentation_place_avoidance(traj, section, dt_min, varargin
         case {config_place_avoidance.SECTION_TMAX, config_place_avoidance.SECTION_AVOID}
             % partition the trajectories into multiple things
             beg = 1;
-            s = -1;          
+            s = 0; % no shock          
             cum_dist = [0];
             sub_seg = [];
             for k = 1:size(traj.points, 1)
                 if k > 1
                     cum_dist(k) = cum_dist(k - 1) + sqrt(sum( (traj.points(k, 2:3) - traj.points(k - 1, 2:3)).^2 ));
                 end
-                if s ~= traj.points(k, 4)
-                    if s == 0 && k > beg
+                if s == 0 && traj.points(k, 4) == config_place_avoidance.POINT_STATE_SHOCK
+                    % entered a shock area
+                    s = 1;
+                    if k > beg
                         % add sub-trajectory
                         sub_seg = [sub_seg; beg, k - 1];
                     end
-                    s = traj.points(k, 4);
                     beg = k;
-                end                         
+                elseif s == 1 && ( traj.points(k, 4) == 0 || ...
+                                   traj.points(k, 4) == config_place_avoidance.POINT_STATE_OUTSIDE_LATENCY )
+                    % left shock area
+                    beg = k;
+                    s = 0;
+                end
             end
             if s == 0 && k > beg
                 sub_seg = [sub_seg; beg, k - 1];

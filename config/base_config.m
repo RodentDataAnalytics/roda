@@ -26,9 +26,9 @@ classdef base_config < handle
         FEATURE_MEDIAN_RADIUS = trajectory_feature('r_12', 'Median radius', 'trajectory_radius', 1, {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'});
         FEATURE_IQR_RADIUS = trajectory_feature('r_iqr', 'IQR radius', 'trajectory_radius', 2, {'CENTRE_X', 'CENTRE_Y', 'ARENA_R'});
         FEATURE_FOCUS = trajectory_feature('f', 'Focus', 'trajectory_focus', 1, {'CENTRE_X', 'CENTRE_Y'});
-        FEATURE_MEAN_ANGLE = trajectory_feature('ang0', 'Mean angle', 'trajectory_mean_angle', 1, {'CENTRE_X', 'CENTRE_Y'});
+        FEATURE_MEAN_ANGLE = trajectory_feature('ang0', 'Mean angle', 'trajectory_mean_angle', 1, {'CENTRE_X', 'CENTRE_Y'}, 0);
         FEATURE_DENSITY = trajectory_feature('rho', 'Density', 'trajectory_density', 1, {'CENTRE_X', 'CENTRE_Y'});
-        FEATURE_ANGULAR_DISPERSION = trajectory_feature('d_ang', 'Angular dispersion', 'trajectory_angular_dispersion');
+        FEATURE_ANGULAR_DISPERSION = trajectory_feature('d_ang', 'Angular dispersion', 'trajectory_angular_dispersion', 1, {'CENTRE_X', 'CENTRE_Y'});
         FEATURE_VARIANCE_SPEED = trajectory_feature('v_var', 'Speed variance', 'trajectory_speed_variance');
         
         DEFAULT_FEATURES = [ ...
@@ -367,6 +367,10 @@ classdef base_config < handle
             end
             
             vals = inst.clust_feat_vals_;
+        end
+        
+        function draw_arena(inst, traj, data_repr)
+            % do nothing
         end
     end
     

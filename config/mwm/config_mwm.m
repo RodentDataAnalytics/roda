@@ -78,7 +78,20 @@ classdef config_mwm < base_config
             traj = load_trajectories_ethovision([path '/' 'set1'], 1, [path '/' 'screenshots/set1'], 'DeltaX', -100, 'DeltaY', -100);
             traj = traj.append(load_trajectories_ethovision([path '/' 'set2'], 1, [path '/screenshots/set2'], 'DeltaX', -100, 'DeltaY', -100));
             traj = traj.append(load_trajectories_ethovision([path '/' 'set3'], 1, [path '/screenshots/set3'], 'DeltaX', -100, 'DeltaY', -100));
-        end        
+        end      
+        
+        function draw_arena(inst, data_repr)
+            draw_circular_arena(inst);
+
+            hold on;
+                
+            x0 = inst.property('PLATFORM_X');
+            y0 = inst.property('PLATFORM_Y');
+            rp = inst.property('PLATFORM_R');
+
+            rectangle('Position',[x0 - rp, y0 - rp, 2*rp, 2*rp],...
+                'Curvature',[1,1], 'FaceColor',[1, 1, 1], 'edgecolor', [0.2, 0.2, 0.2], 'LineWidth', 3); 
+        end
     end
 end
 

@@ -15,12 +15,17 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
     pti = 1;
     n = size(pts, 1);
     new_seg = 1;
+    cum_dist = [0]; 
+    % need the cummulative distances first
+    for i = 2:n
+        cum_dist(i) = cum_dist(i - 1) + sqrt(sum( (traj.points(i, 2:3) - traj.points(i - 1, 2:3)).^2 ));
+    end
     while new_seg
         new_seg = 0;
-        for i = pti:n            
+        for i = pti:n                                      
             if pts(i, 1) - pts(pti, 1) < tmin
                 continue;
-            end
+            end            
             
             % compute median speed
             vm = median( pts(pti:i, 2) );
@@ -45,7 +50,7 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
                     end     
                     % see if we are long enough
                     if pts(ptf, 1) - pts(pti, 1) > dt_min                             
-                        segments = segments.append(trajectory(traj.points(pti:ptf, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
+                        segments = segments.append(trajectory(traj.points(pti:ptf, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, traj.segment, traj.offset + cum_dist(pti), traj.start_index + pti, traj.trial_type));            
                     end
                     pti = min(ptf + 1, n);        
                     new_seg = 1;
@@ -57,13 +62,30 @@ function segments = segmentation_speed_change(traj, dtrepr, dt_min, varargin)
     
     % see if we want to append segments 
     if pts(n, 1) - pts(pti, 1) > dt_min                 
-        segments = segments.append(trajectory(traj.points(pti:n, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, 1, 0, 1, traj.trial_type));            
+        segments = segments.append(trajectory(traj.points(pti:n, :), traj.set, traj.track, traj.group, traj.id, traj.trial, traj.session, traj.segment, traj.offset + cum_dist(pti), traj.start_index + pti, traj.trial_type));            
     end      
     
-    if ~other_seg && segments.count > 1        
-        segments = trajectories(segments.items(1) );        
+    if ~other_seg           
+        if segments.count > 1
+            if segments.items(1).offset > 0 && segments.items(1).offset == traj.offset 
+                % take just the first
+                segments = trajectories(segments.items(1) );        
+            else
+                segments = trajectories([]);
+            end            
+        else
+            if segments.count == 1 && segments.items(1).offset > traj.offset
+                % this is the first part of the trajectory (i.e. not after a
+                %shock); just ignore it
+                segments = trajectories([]);
+            end
+        end
     end
-    if ~first_seg && segments.count > 1
-        segments = trajectories(segments.items(2:end));           
+    if ~first_seg
+        if segments.count > 1
+            if segments.items(1).offset > 0                
+                segments = trajectories(segments.items(2:end));           
+            end
+        end
     end
 end
