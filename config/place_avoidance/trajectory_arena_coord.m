@@ -7,8 +7,8 @@ function pts = trajectory_arena_coord( traj, x0, y0, f, varargin )
         x = traj.points(i, 2) - x0;
         y = traj.points(i, 3) - y0;
         
-        xx = x*cos(2*pi*dt*f/60) - y*sin(2*pi*dt*f/60);
-        yy = x*sin(2*pi*dt*f/60) + y*cos(2*pi*dt*f/60);
+        xx = x*cos(-2*pi*dt*f/60) - y*sin(-2*pi*dt*f/60);
+        yy = x*sin(-2*pi*dt*f/60) + y*cos(-2*pi*dt*f/60);
         
         pts = [pts; traj.points(i, 1), xx + x0, yy + y0, traj.points(i, 4:end)];
     end
