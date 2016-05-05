@@ -124,7 +124,7 @@ classdef config_place_avoidance < base_config
         %%%
         %%% Segmentation
         %%%
-        SEGMENTATION_PLACE_AVOIDANCE = function_wrapper('Place avoidance', 'segmentation_place_avoidance', 1, {'SEGMENT_SECTION', 'SEGMENT_MINIMUM_SHOCKS_DELAY'});
+        SEGMENTATION_PLACE_AVOIDANCE = function_wrapper('Place avoidance', 'segmentation_place_avoidance', 1, {'SEGMENT_SECTION', 'SEGMENT_MINIMUM_SHOCKS_DELAY'}, {'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD});
     end    
             
     methods        

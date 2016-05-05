@@ -413,7 +413,8 @@ classdef label_trajectories_view < handle
                 hold off;                
                 axis tight;
                 if tol > 0
-                    plot(pts(:, 1), smooth(pts(:, 2), ceil(tol)));
+                    plot(pts(:, 1), medfilt1(pts(:, 2), ceil(tol)));
+                    % plot(pts(:, 1), smooth(pts(:, 2), ceil(tol)));
                 else                   
                     plot(pts(:, 1), pts(:, 2));
                 end
