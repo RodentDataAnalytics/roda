@@ -124,7 +124,7 @@ classdef config_place_avoidance < base_config
         %%%
         %%% Segmentation
         %%%
-        SEGMENTATION_PLACE_AVOIDANCE = function_wrapper('Place avoidance', 'segmentation_place_avoidance', 1, {'SEGMENT_SECTION', 'SEGMENT_MINIMUM_SHOCKS_DELAY'}, {'DataRepresentation', config_place_avoidance.DATA_REPRESENTATION_ARENA_COORD});
+        SEGMENTATION_PLACE_AVOIDANCE = function_wrapper('Place avoidance', 'segmentation_place_avoidance', 1, {'SEGMENT_SECTION', 'SEGMENT_MINIMUM_SHOCKS_DELAY'});
     end    
             
     methods        
@@ -143,6 +143,7 @@ classdef config_place_avoidance < base_config
             prop = property_list_set_default(prop, 'CLUSTER_CLASS_MINIMUM_SAMPLES_EXP', 0.5);        
             prop = property_list_set_default(prop, 'NUMBER_FEATURES_PCA', 4);  
             prop = property_list_set_default(prop, 'TIME_WITHIN_RADIUS_R', 0.75*127); 
+            prop = property_list_set_default(prop, 'CLUSTERING_ALGORITHM', 'kmeans');
             
             % replace the properties with our new list            
             other_arg = property_list_replace(varargin, 'Properties', prop);

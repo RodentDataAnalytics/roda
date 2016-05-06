@@ -171,7 +171,7 @@ classdef semisupervised_clustering < handle
             results_map(unlabelled) = (length(labels_idx) + 1):length(inst.labels);
             % reorded features -> first labelled then unlabelled items
             reordered_feat = [inst.features(labels_idx, :); inst.features(unlabelled, :)];         
-
+                                    
             %% build list of constraints    
             constr = [];
             for j = 1:length(labels_idx)
@@ -192,16 +192,17 @@ classdef semisupervised_clustering < handle
                 end
             end
             
+         
             if inst.pconstraints < 1 
                 constr = constr(randsample(size(constr, 1), floor(size(constr, 1)*inst.pconstraints)), :);
             end
             
             nconstr = length(constr);
+                                   
+            %% 1st (main stage): cluster the data            
+            fprintf('\nClustering... (target clusters: %d, total number of constraints: %d)', nclusters, size(constr, 1));
+            [cluster_idx, centroids] = inst.clustering_algo(reordered_feat, constr, nclusters);
             
-            %% 1st (main stage): cluster the data
-            fprintf('Clustering... (total number of constraints: %d)', size(constr, 1));
-            [cluster_idx, centroids] = mpckmeans(reordered_feat, constr, nclusters);
-            cluster_idx = cluster_idx + 1; % mpck-means uses zero based indexes (it's Java after all) -> we want them to start at 1
             % reorder indexes agaion to match the input data
             cluster_idx = cluster_idx(results_map);   
 
@@ -284,8 +285,7 @@ classdef semisupervised_clustering < handle
                             for s = nsub:2*nsub
                                 fprintf('**** Partitioning cluster %d into %d sub-clusters... ****\n', i, s);
 
-                                [sub_cluster_idx, sub_centroids] = mpckmeans(reordered_feat, constr, s);
-                                sub_cluster_idx = sub_cluster_idx + 1;
+                                [sub_cluster_idx, sub_centroids] = inst.clustering_algo(reordered_feat, constr, s);                                
                                 % reorder indexes agaion to match the input data
                                 sub_cluster_idx = sub_cluster_idx(results_map);   
 
@@ -349,5 +349,25 @@ classdef semisupervised_clustering < handle
             % create return object
             res = clustering_results(inst.segments, length(inst.classes), inst.labels, training_set, test_set, inst.nexternal_labels, [nconstr, nconstr2], class_idx, cluster_idx, cluster_map, centroids, inst.classes);             
         end    
+        
+        function [cluster_idx, centroids] = clustering_algo(inst, feat, constr, nclusters)
+            % use MPCK-means algorithm by default
+            algo = inst.config.property('CLUSTERING_ALGORITHM', 'MPCKm');
+       
+            % constraints supported only by MPCkmeans
+            if ~strcmp(algo, 'MPCKm') && ~isempty(constr)
+                error('Constraints not supported with the standard clustering algorithm');
+            end
+            
+            if strcmp(algo, 'MPCKm')                
+                [cluster_idx, centroids] = mpckmeans(feat, constr, nclusters);
+                cluster_idx = cluster_idx + 1; % mpck-means uses zero based indexes (it's Java after all) -> we want them to start at 1            
+            elseif strcmp(algo, 'kmeans')
+                [cluster_idx, centroids] = kmeans(feat, nclusters, 'MaxIter', 10000);
+                centroids = centroids';
+            else
+                error('Unknown clustering algorithm');
+            end
+        end
     end
 end
